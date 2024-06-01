@@ -23,12 +23,12 @@ import qualified Data.Map as Map
 import qualified Data.Map.Utils as Map
 import qualified Data.Map.Merge.Strict as Map
 import qualified Data.Maybe as Maybe
-import qualified Data.Name as Name
 import qualified Data.NonEmptyList as NE
 import qualified Data.OneOrMore as OneOrMore
 import qualified Data.Set as Set
 import qualified Data.Utf8 as Utf8
 import Data.Word (Word64)
+import qualified Debug.Trace
 import qualified System.Directory as Dir
 import System.FilePath ((</>), (<.>))
 
@@ -43,7 +43,6 @@ import qualified Deps.Website as Website
 import qualified Elm.Constraint as Con
 import qualified Elm.Docs as Docs
 import qualified Elm.Interface as I
-import qualified Elm.Kernel as Kernel
 import qualified Elm.ModuleName as ModuleName
 import qualified Elm.Outline as Outline
 import qualified Elm.Package as Pkg
@@ -456,6 +455,20 @@ build key cache depsMVar pkg (Solver.Details vsn _) f fs =
                       putMVar mvar mvars
                       mapM_ readMVar mvars
                       maybeStatuses <- traverse readMVar =<< readMVar mvar
+                      let !_ = Debug.Trace.trace
+                                ("XXX1: Couldnt build dependency modules: "
+                                  ++ (show $
+                                      Map.keys $
+                                      Map.filter
+                                        (\x ->
+                                          case x of
+                                            Nothing -> True
+                                            Just _ -> False
+                                        )
+                                        maybeStatuses
+                                      )
+                                )
+                                ()
                       case sequence maybeStatuses of
                         Nothing ->
                           do  Reporting.report key Reporting.DBroken
@@ -495,12 +508,10 @@ gatherObjects results =
 
 
 addLocalGraph :: ModuleName.Raw -> Result -> Opt.GlobalGraph -> Opt.GlobalGraph
-addLocalGraph name status graph =
+addLocalGraph _ status graph =
   case status of
     RLocal _ objs _ -> Opt.addLocalGraph objs graph
     RForeign _      -> graph
-    RKernelLocal cs -> Opt.addKernel (Name.getKernel name) cs graph
-    RKernelForeign  -> graph
 
 
 gatherInterfaces :: Map.Map ModuleName.Raw () -> Map.Map ModuleName.Raw Result -> Map.Map ModuleName.Raw I.DependencyInterface
@@ -518,8 +529,6 @@ toLocalInterface func result =
   case result of
     RLocal iface _ _ -> Just (func iface)
     RForeign _       -> Nothing
-    RKernelLocal _   -> Nothing
-    RKernelForeign   -> Nothing
 
 
 
@@ -564,8 +573,6 @@ type StatusDict =
 data Status
   = SLocal DocsStatus (Map.Map ModuleName.Raw ()) Src.Module
   | SForeign I.Interface
-  | SKernelLocal [Kernel.Chunk]
-  | SKernelForeign
 
 
 crawlModule :: Map.Map ModuleName.Raw ForeignInterface -> MVar StatusDict -> Pkg.Name -> FilePath -> DocsStatus -> ModuleName.Raw -> IO (Maybe Status)
@@ -585,9 +592,6 @@ crawlModule foreignDeps mvar pkg src docsStatus name =
           if exists then
             crawlFile foreignDeps mvar pkg src docsStatus name path
 
-          else if Pkg.isKernel pkg && Name.isKernel name then
-            crawlKernel foreignDeps mvar pkg src name
-
           else
             return Nothing
 
@@ -596,7 +600,7 @@ crawlFile :: Map.Map ModuleName.Raw ForeignInterface -> MVar StatusDict -> Pkg.N
 crawlFile foreignDeps mvar pkg src docsStatus expectedName path =
   do  bytes <- File.readUtf8 path
       case Parse.fromByteString (Parse.Package pkg) bytes of
-        Right modul@(Src.Module (Just (A.At _ actualName)) _ _ imports _ _ _ _ _) | expectedName == actualName ->
+        Right modul@(Src.Module (Just (A.At _ actualName)) _ _ imports _ _ _ _) | expectedName == actualName ->
           do  deps <- crawlImports foreignDeps mvar pkg src imports
               return (Just (SLocal docsStatus deps modul))
 
@@ -615,40 +619,12 @@ crawlImports foreignDeps mvar pkg src imports =
       return deps
 
 
-crawlKernel :: Map.Map ModuleName.Raw ForeignInterface -> MVar StatusDict -> Pkg.Name -> FilePath -> ModuleName.Raw -> IO (Maybe Status)
-crawlKernel foreignDeps mvar pkg src name =
-  do  let path = src </> ModuleName.toFilePath name <.> "js"
-      exists <- File.exists path
-      if exists
-        then
-          do  bytes <- File.readUtf8 path
-              case Kernel.fromByteString pkg (Map.mapMaybe getDepHome foreignDeps) bytes of
-                Nothing ->
-                  return Nothing
-
-                Just (Kernel.Content imports chunks) ->
-                  do  _ <- crawlImports foreignDeps mvar pkg src imports
-                      return (Just (SKernelLocal chunks))
-        else
-          return (Just SKernelForeign)
-
-
-getDepHome :: ForeignInterface -> Maybe Pkg.Name
-getDepHome fi =
-  case fi of
-    ForeignSpecific (I.Interface pkg _ _ _ _) -> Just pkg
-    ForeignAmbiguous                          -> Nothing
-
-
-
 -- COMPILE
 
 
 data Result
   = RLocal !I.Interface !Opt.LocalGraph (Maybe Docs.Module)
   | RForeign I.Interface
-  | RKernelLocal [Kernel.Chunk]
-  | RKernelForeign
 
 
 compile :: Pkg.Name -> MVar (Map.Map ModuleName.Raw (MVar (Maybe Result))) -> Status -> IO (Maybe Result)
@@ -662,7 +638,7 @@ compile pkg mvar status =
               return Nothing
 
             Just results ->
-              case Compile.compile pkg (Map.mapMaybe getInterface results) modul of
+              case Compile.compile pkg (Map.map getInterface results) modul of
                 Left _ ->
                   return Nothing
 
@@ -676,20 +652,12 @@ compile pkg mvar status =
     SForeign iface ->
       return (Just (RForeign iface))
 
-    SKernelLocal chunks ->
-      return (Just (RKernelLocal chunks))
 
-    SKernelForeign ->
-      return (Just RKernelForeign)
-
-
-getInterface :: Result -> Maybe I.Interface
+getInterface :: Result -> I.Interface
 getInterface result =
   case result of
-    RLocal iface _ _ -> Just iface
-    RForeign iface   -> Just iface
-    RKernelLocal _   -> Nothing
-    RKernelForeign   -> Nothing
+    RLocal iface _ _ -> iface
+    RForeign iface   -> iface
 
 
 
@@ -737,8 +705,6 @@ toDocs result =
   case result of
     RLocal _ _ docs -> docs
     RForeign _      -> Nothing
-    RKernelLocal _  -> Nothing
-    RKernelForeign  -> Nothing
 
 
 

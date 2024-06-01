@@ -1,9 +1,6 @@
 {-# LANGUAGE BangPatterns #-}
 module Generate
   ( debug
-  , dev
-  , prod
-  , repl
   )
   where
 
@@ -26,9 +23,7 @@ import qualified Elm.Interface as I
 import qualified Elm.ModuleName as ModuleName
 import qualified Elm.Package as Pkg
 import qualified File
-import qualified Generate.JavaScript as JS
-import qualified Generate.Mode as Mode
-import qualified Nitpick.Debug as Nitpick
+import qualified Generate.Bend as Bend
 import qualified Reporting.Exit as Exit
 import qualified Reporting.Task as Task
 import qualified Stuff
@@ -52,47 +47,9 @@ debug root details (Build.Artifacts pkg ifaces roots modules) =
   do  loading <- loadObjects root details modules
       types   <- loadTypes root ifaces modules
       objects <- finalizeObjects loading
-      let mode = Mode.Dev (Just types)
       let graph = objectsToGlobalGraph objects
       let mains = gatherMains pkg objects roots
-      return $ JS.generate mode graph mains
-
-
-dev :: FilePath -> Details.Details -> Build.Artifacts -> Task B.Builder
-dev root details (Build.Artifacts pkg _ roots modules) =
-  do  objects <- finalizeObjects =<< loadObjects root details modules
-      let mode = Mode.Dev Nothing
-      let graph = objectsToGlobalGraph objects
-      let mains = gatherMains pkg objects roots
-      return $ JS.generate mode graph mains
-
-
-prod :: FilePath -> Details.Details -> Build.Artifacts -> Task B.Builder
-prod root details (Build.Artifacts pkg _ roots modules) =
-  do  objects <- finalizeObjects =<< loadObjects root details modules
-      checkForDebugUses objects
-      let graph = objectsToGlobalGraph objects
-      let mode = Mode.Prod (Mode.shortenFieldNames graph)
-      let mains = gatherMains pkg objects roots
-      return $ JS.generate mode graph mains
-
-
-repl :: FilePath -> Details.Details -> Bool -> Build.ReplArtifacts -> N.Name -> Task B.Builder
-repl root details ansi (Build.ReplArtifacts home modules localizer annotations) name =
-  do  objects <- finalizeObjects =<< loadObjects root details modules
-      let graph = objectsToGlobalGraph objects
-      return $ JS.generateForRepl ansi localizer graph home name (annotations ! name)
-
-
-
--- CHECK FOR DEBUG
-
-
-checkForDebugUses :: Objects -> Task ()
-checkForDebugUses (Objects _ locals) =
-  case Map.keys (Map.filter Nitpick.hasDebugUses locals) of
-    []   -> return ()
-    m:ms -> Task.throw (Exit.GenerateCannotOptimizeDebugValues m ms)
+      return $ Bend.generate graph mains
 
 
 

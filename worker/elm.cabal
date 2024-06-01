@@ -92,7 +92,6 @@ Executable worker
         Elm.Docs
         Elm.Float
         Elm.Interface
-        Elm.Kernel
         Elm.Licenses
         Elm.Magnitude
         Elm.ModuleName

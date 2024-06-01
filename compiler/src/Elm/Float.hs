@@ -23,6 +23,8 @@ import Foreign.Ptr (Ptr)
 type Float =
   Utf8.Utf8 ELM_FLOAT
 
+instance Show Float where
+  show = Utf8.toChars
 
 data ELM_FLOAT
 

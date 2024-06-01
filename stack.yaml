@@ -1,0 +1,42 @@
+resolver: lts-20.26 # ghc 9.2.8
+system-ghc: false
+ghc-options:
+  "$locals": -Wincomplete-patterns -lstdc++
+  "$targets": -lstdc++
+allow-newer: true
+extra-deps:
+- timeout-0.1.1
+- command-0.1.1
+- snap-server-1.1.2.1
+- websockets-snap-0.10.3.1
+- fold-debounce-0.2.0.11
+- snap-core-1.0.5.1
+- readable-0.3.1
+- fsnotify-0.4.1.0
+
+# Required to build on windows
+- regex-posix-0.96.0.1
+
+# windows pinning for build issues
+- ansi-terminal-0.11
+- git: https://github.com/noteed/language-glsl.git
+  commit: 99c3aae76363b127679da640a6f00d61d2203830
+# Metapackage that apparently resolves below issues for windows:
+flags:
+  regex-posix:
+     _regex-posix-clib: true
+packages:
+- '.'
+
+
+# Need to re-check if the below is still an issue now we're on GHC 9.4:
+# > The system-cxx-std-lib metapackage should significantly improve the status quo here and is shipped with GHC %9.4.1. Closing.
+# ---------------
+# https://gitlab.haskell.org/ghc/ghc/-/issues/20010#note_359766
+# however extra-libraries is not a supported stack.yaml field...?
+# extra-libraries: stdc++ supc++ gcc_s
+
+# And for windows build issues related to .ddl inclusion
+# https://discourse.haskell.org/t/announce-ghcup-0-1-15-rc2-windows-pre-release/2616/14
+# however it seems stack automatically includes a bunch of paths, don't think this helped?
+# - C:\ghcup\msys64\mingw64\include

@@ -26,7 +26,7 @@ import qualified Data.Index as Index
 import qualified Elm.ModuleName as ModuleName
 import qualified Reporting.Annotation as A
 import qualified Reporting.Doc as D
-import Reporting.Doc (Doc, (<+>), (<>))
+import Reporting.Doc (Doc, (<+>))
 import qualified Reporting.Render.Code as Code
 import qualified Reporting.Render.Type as RT
 import qualified Reporting.Report as Report
@@ -76,11 +76,13 @@ data Error
   | TupleLargerThanThree A.Region
   | TypeVarsUnboundInUnion A.Region Name.Name [Name.Name] (Name.Name, A.Region) [(Name.Name, A.Region)]
   | TypeVarsMessedUpInAlias A.Region Name.Name [Name.Name] [(Name.Name, A.Region)] [(Name.Name, A.Region)]
+  deriving (Show)
 
 
 data BadArityContext
   = TypeArity
   | PatternArity
+  deriving (Show)
 
 
 data DuplicatePatternContext
@@ -89,6 +91,7 @@ data DuplicatePatternContext
   | DPCaseBranch
   | DPLetBinding
   | DPDestruct
+  deriving (Show)
 
 
 data InvalidPayload
@@ -96,6 +99,7 @@ data InvalidPayload
   | Function
   | TypeVariable Name.Name
   | UnsupportedType Name.Name
+  deriving (Show)
 
 
 data PortProblem
@@ -104,6 +108,7 @@ data PortProblem
   | CmdBadMsg
   | SubBad
   | NotCmdOrSub
+  deriving (Show)
 
 
 data PossibleNames =
@@ -111,6 +116,7 @@ data PossibleNames =
     { _locals :: Set.Set Name.Name
     , _quals :: Map.Map Name.Name (Set.Set Name.Name)
     }
+  deriving (Show)
 
 
 
@@ -122,6 +128,7 @@ data VarKind
   | BadVar
   | BadPattern
   | BadType
+  deriving (Show)
 
 
 toKindInfo :: VarKind -> Name.Name -> ( Doc, Doc, Doc )

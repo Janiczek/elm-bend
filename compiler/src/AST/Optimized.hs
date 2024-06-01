@@ -11,11 +11,9 @@ module AST.Optimized
   , LocalGraph(..)
   , Main(..)
   , Node(..)
-  , EffectsType(..)
   , empty
   , addGlobalGraph
   , addLocalGraph
-  , addKernel
   , toKernelGlobal
   )
   where
@@ -29,10 +27,8 @@ import Data.Name (Name)
 import qualified Data.Set as Set
 
 import qualified AST.Canonical as Can
-import qualified AST.Utils.Shader as Shader
 import qualified Data.Index as Index
 import qualified Elm.Float as EF
-import qualified Elm.Kernel as K
 import qualified Elm.ModuleName as ModuleName
 import qualified Elm.Package as Pkg
 import qualified Elm.String as ES
@@ -56,7 +52,6 @@ data Expr
   | VarBox Global
   | VarCycle ModuleName.Canonical Name
   | VarDebug Name ModuleName.Canonical A.Region (Maybe Name)
-  | VarKernel Name Name
   | List [Expr]
   | Function [Name] Expr
   | Call Expr [Expr]
@@ -71,10 +66,11 @@ data Expr
   | Record (Map.Map Name Expr)
   | Unit
   | Tuple Expr Expr (Maybe Expr)
-  | Shader Shader.Source (Set.Set Name) (Set.Set Name)
+  deriving (Show)
 
 
 data Global = Global ModuleName.Canonical Name
+  deriving (Show)
 
 
 
@@ -84,10 +80,12 @@ data Global = Global ModuleName.Canonical Name
 data Def
   = Def Name Expr
   | TailDef Name [Name] Expr
+  deriving (Show)
 
 
 data Destructor =
   Destructor Name Path
+  deriving (Show)
 
 
 data Path
@@ -95,6 +93,7 @@ data Path
   | Field Name Path
   | Unbox Path
   | Root Name
+  deriving (Show)
 
 
 
@@ -113,12 +112,13 @@ data Decider a
       , _tests :: [(DT.Test, Decider a)]
       , _fallback :: Decider a
       }
-  deriving (Eq)
+  deriving (Eq, Show)
 
 
 data Choice
   = Inline Expr
   | Jump Int
+  deriving (Show)
 
 
 
@@ -130,6 +130,7 @@ data GlobalGraph =
     { _g_nodes :: Map.Map Global Node
     , _g_fields :: Map.Map Name Int
     }
+  deriving (Show)
 
 
 data LocalGraph =
@@ -138,6 +139,7 @@ data LocalGraph =
     , _l_nodes :: Map.Map Global Node  -- PERF profile switching Global to Name
     , _l_fields :: Map.Map Name Int
     }
+  deriving (Show)
 
 
 data Main
@@ -146,6 +148,7 @@ data Main
       { _message :: Can.Type
       , _decoder :: Expr
       }
+  deriving (Show)
 
 
 data Node
@@ -156,13 +159,7 @@ data Node
   | Box
   | Link Global
   | Cycle [Name] [(Name, Expr)] [Def] (Set.Set Global)
-  | Manager EffectsType
-  | Kernel [K.Chunk] (Set.Set Global)
-  | PortIncoming Expr (Set.Set Global)
-  | PortOutgoing Expr (Set.Set Global)
-
-
-data EffectsType = Cmd | Sub | Fx
+  deriving (Show)
 
 
 
@@ -190,30 +187,6 @@ addLocalGraph (LocalGraph _ nodes1 fields1) (GlobalGraph nodes2 fields2) =
     , _g_fields = Map.union fields1 fields2
     }
 
-
-addKernel :: Name.Name -> [K.Chunk] -> GlobalGraph -> GlobalGraph
-addKernel shortName chunks (GlobalGraph nodes fields) =
-  let
-    global = toKernelGlobal shortName
-    node = Kernel chunks (foldr addKernelDep Set.empty chunks)
-  in
-  GlobalGraph
-    { _g_nodes = Map.insert global node nodes
-    , _g_fields = Map.union (K.countFields chunks) fields
-    }
-
-
-addKernelDep :: K.Chunk -> Set.Set Global -> Set.Set Global
-addKernelDep chunk deps =
-  case chunk of
-    K.JS _              -> deps
-    K.ElmVar home name  -> Set.insert (Global home name) deps
-    K.JsVar shortName _ -> Set.insert (toKernelGlobal shortName) deps
-    K.ElmField _        -> deps
-    K.JsField _         -> deps
-    K.JsEnum _          -> deps
-    K.Debug             -> deps
-    K.Prod              -> deps
 
 
 toKernelGlobal :: Name.Name -> Global
@@ -261,7 +234,6 @@ instance Binary Expr where
       VarBox a         -> putWord8  8 >> put a
       VarCycle a b     -> putWord8  9 >> put a >> put b
       VarDebug a b c d -> putWord8 10 >> put a >> put b >> put c >> put d
-      VarKernel a b    -> putWord8 11 >> put a >> put b
       List a           -> putWord8 12 >> put a
       Function a b     -> putWord8 13 >> put a >> put b
       Call a b         -> putWord8 14 >> put a >> put b
@@ -276,7 +248,6 @@ instance Binary Expr where
       Record a         -> putWord8 23 >> put a
       Unit             -> putWord8 24
       Tuple a b c      -> putWord8 25 >> put a >> put b >> put c
-      Shader a b c     -> putWord8 26 >> put a >> put b >> put c
 
   get =
     do  word <- getWord8
@@ -292,7 +263,6 @@ instance Binary Expr where
           8  -> liftM  VarBox get
           9  -> liftM2 VarCycle get get
           10 -> liftM4 VarDebug get get get get
-          11 -> liftM2 VarKernel get get
           12 -> liftM  List get
           13 -> liftM2 Function get get
           14 -> liftM2 Call get get
@@ -307,7 +277,6 @@ instance Binary Expr where
           23 -> liftM  Record get
           24 -> pure   Unit
           25 -> liftM3 Tuple get get get
-          26 -> liftM3 Shader get get get
           _  -> fail "problem getting Opt.Expr binary"
 
 
@@ -413,10 +382,6 @@ instance Binary Node where
       Box                  -> putWord8  4
       Link a               -> putWord8  5 >> put a
       Cycle a b c d        -> putWord8  6 >> put a >> put b >> put c >> put d
-      Manager a            -> putWord8  7 >> put a
-      Kernel a b           -> putWord8  8 >> put a >> put b
-      PortIncoming a b     -> putWord8  9 >> put a >> put b
-      PortOutgoing a b     -> putWord8 10 >> put a >> put b
 
   get =
     do  word <- getWord8
@@ -428,24 +393,4 @@ instance Binary Node where
           4  -> return Box
           5  -> liftM  Link get
           6  -> liftM4 Cycle get get get get
-          7  -> liftM  Manager get
-          8  -> liftM2 Kernel get get
-          9  -> liftM2 PortIncoming get get
-          10 -> liftM2 PortOutgoing get get
           _  -> fail "problem getting Opt.Node binary"
-
-
-instance Binary EffectsType where
-  put effectsType =
-    case effectsType of
-      Cmd -> putWord8 0
-      Sub -> putWord8 1
-      Fx  -> putWord8 2
-
-  get =
-    do  word <- getWord8
-        case word of
-          0 -> return Cmd
-          1 -> return Sub
-          2 -> return Fx
-          _ -> fail "problem getting Opt.EffectsType binary"

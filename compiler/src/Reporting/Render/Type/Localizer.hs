@@ -17,7 +17,6 @@ import qualified Data.Set as Set
 
 import qualified AST.Source as Src
 import qualified Elm.ModuleName as ModuleName
-import Reporting.Doc ((<>))
 import qualified Reporting.Doc as D
 import qualified Reporting.Annotation as A
 
@@ -28,6 +27,7 @@ import qualified Reporting.Annotation as A
 
 newtype Localizer =
   Localizer (Map.Map Name.Name Import)
+  deriving (Show)
 
 
 data Import =
@@ -35,11 +35,13 @@ data Import =
     { _alias :: Maybe Name.Name
     , _exposing :: Exposing
     }
+  deriving (Show)
 
 
 data Exposing
   = All
   | Only (Set.Set Name.Name)
+  deriving (Show)
 
 
 empty :: Localizer
@@ -90,7 +92,7 @@ fromNames names =
 
 
 fromModule :: Src.Module -> Localizer
-fromModule modul@(Src.Module _ _ _ imports _ _ _ _ _) =
+fromModule modul@(Src.Module _ _ _ imports _ _ _ _) =
   Localizer $ Map.fromList $
     (Src.getName modul, Import Nothing All) : map toPair imports
 

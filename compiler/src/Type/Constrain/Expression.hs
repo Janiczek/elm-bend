@@ -11,7 +11,6 @@ import qualified Data.Map.Strict as Map
 import qualified Data.Name as Name
 
 import qualified AST.Canonical as Can
-import qualified AST.Utils.Shader as Shader
 import qualified Data.Index as Index
 import qualified Elm.ModuleName as ModuleName
 import qualified Reporting.Annotation as A
@@ -45,9 +44,6 @@ constrain rtv (A.At region expression) expected =
 
     Can.VarTopLevel _ name ->
       return (CLocal region name expected)
-
-    Can.VarKernel _ _ ->
-      return CTrue
 
     Can.VarForeign _ name annotation ->
       return $ CForeign region name annotation expected
@@ -148,9 +144,6 @@ constrain rtv (A.At region expression) expected =
     Can.Tuple a b maybeC ->
       constrainTuple rtv region a b maybeC expected
 
-    Can.Shader _src types ->
-      constrainShader region types expected
-
 
 
 -- CONSTRAIN LAMBDA
@@ -223,7 +216,6 @@ getName (A.At _ expr) =
     Can.VarForeign _ name _  -> FuncName name
     Can.VarCtor _ _ name _ _ -> CtorName name
     Can.VarOperator op _ _ _ -> OpName op
-    Can.VarKernel _ name     -> FuncName name
     _                        -> NoName
 
 
@@ -460,48 +452,6 @@ constrainTuple rtv region a b maybeC expected =
               let tupleCon = CEqual region Tuple tupleType expected
 
               return $ exists [ aVar, bVar, cVar ] $ CAnd [ aCon, bCon, cCon, tupleCon ]
-
-
-
--- CONSTRAIN SHADER
-
-
-constrainShader :: A.Region -> Shader.Types -> Expected Type -> IO Constraint
-constrainShader region (Shader.Types attributes uniforms varyings) expected =
-  do  attrVar <- mkFlexVar
-      unifVar <- mkFlexVar
-      let attrType = VarN attrVar
-      let unifType = VarN unifVar
-
-      let shaderType =
-            AppN ModuleName.webgl Name.shader
-              [ toShaderRecord attributes attrType
-              , toShaderRecord uniforms unifType
-              , toShaderRecord varyings EmptyRecordN
-              ]
-
-      return $ exists [ attrVar, unifVar ] $
-        CEqual region Shader shaderType expected
-
-
-toShaderRecord :: Map.Map Name.Name Shader.Type -> Type -> Type
-toShaderRecord types baseRecType =
-  if Map.null types then
-    baseRecType
-  else
-    RecordN (Map.map glToType types) baseRecType
-
-
-glToType :: Shader.Type -> Type
-glToType glType =
-  case glType of
-    Shader.V2 -> Type.vec2
-    Shader.V3 -> Type.vec3
-    Shader.V4 -> Type.vec4
-    Shader.M4 -> Type.mat4
-    Shader.Int -> Type.int
-    Shader.Float -> Type.float
-    Shader.Texture -> Type.texture
 
 
 

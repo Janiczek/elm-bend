@@ -24,7 +24,6 @@ import qualified Elm.Details as Details
 import qualified Elm.ModuleName as ModuleName
 import qualified File
 import qualified Generate
-import qualified Generate.Html as Html
 import qualified Reporting
 import qualified Reporting.Exit as Exit
 import qualified Reporting.Task as Task
@@ -38,17 +37,13 @@ import Terminal (Parser(..))
 
 data Flags =
   Flags
-    { _debug :: Bool
-    , _optimize :: Bool
-    , _output :: Maybe Output
+    { _output :: Maybe Output
     , _report :: Maybe ReportType
-    , _docs :: Maybe FilePath
     }
 
 
 data Output
-  = JS FilePath
-  | Html FilePath
+  = Bend FilePath
   | DevNull
 
 
@@ -64,7 +59,7 @@ type Task a = Task.Task Exit.Make a
 
 
 run :: [FilePath] -> Flags -> IO ()
-run paths flags@(Flags _ _ _ report _) =
+run paths flags@(Flags _ report) =
   do  style <- getStyle report
       maybeRoot <- Stuff.findRoot
       Reporting.attemptWithStyle style Exit.makeToReport $
@@ -74,15 +69,14 @@ run paths flags@(Flags _ _ _ report _) =
 
 
 runHelp :: FilePath -> [FilePath] -> Reporting.Style -> Flags -> IO (Either Exit.Make ())
-runHelp root paths style (Flags debug optimize maybeOutput _ maybeDocs) =
+runHelp root paths style (Flags maybeOutput _) =
   BW.withScope $ \scope ->
   Stuff.withRootLock root $ Task.run $
-  do  desiredMode <- getMode debug optimize
-      details <- Task.eio Exit.MakeBadDetails (Details.load style scope root)
+  do  details <- Task.eio Exit.MakeBadDetails (Details.load style scope root)
       case paths of
         [] ->
           do  exposed <- getExposed details
-              buildExposed style root details maybeDocs exposed
+              buildExposed style root details exposed
 
         p:ps ->
           do  artifacts <- buildPaths style root details (NE.List p ps)
@@ -93,29 +87,24 @@ runHelp root paths style (Flags debug optimize maybeOutput _ maybeDocs) =
                       return ()
 
                     [name] ->
-                      do  builder <- toBuilder root details desiredMode artifacts
-                          generate style "index.html" (Html.sandwich name builder) (NE.List name [])
+                      do  builder <- toBuilder root details artifacts
+                          generate style "out.bend" builder (NE.List name [])
 
                     name:names ->
-                      do  builder <- toBuilder root details desiredMode artifacts
-                          generate style "elm.js" builder (NE.List name names)
+                      do  builder <- toBuilder root details artifacts
+                          generate style "out.bend" builder (NE.List name names)
 
                 Just DevNull ->
                   return ()
 
-                Just (JS target) ->
+                Just (Bend target) ->
                   case getNoMains artifacts of
                     [] ->
-                      do  builder <- toBuilder root details desiredMode artifacts
+                      do  builder <- toBuilder root details artifacts
                           generate style target builder (Build.getRootNames artifacts)
 
                     name:names ->
-                      Task.throw (Exit.MakeNonMainFilesIntoJavaScript name names)
-
-                Just (Html target) ->
-                  do  name <- hasOneMain artifacts
-                      builder <- toBuilder root details desiredMode artifacts
-                      generate style target (Html.sandwich name builder) (NE.List name [])
+                      Task.throw (Exit.MakeNonMainFilesIntoBend name names)
 
 
 
@@ -127,15 +116,6 @@ getStyle report =
   case report of
     Nothing -> Reporting.terminal
     Just Json -> return Reporting.json
-
-
-getMode :: Bool -> Bool -> Task DesiredMode
-getMode debug optimize =
-  case (debug, optimize) of
-    (True , True ) -> Task.throw Exit.MakeCannotOptimizeAndDebug
-    (True , False) -> return Debug
-    (False, False) -> return Dev
-    (False, True ) -> return Prod
 
 
 getExposed :: Details.Details -> Task (NE.List ModuleName.Raw)
@@ -154,13 +134,10 @@ getExposed (Details.Details _ validOutline _ _ _ _) =
 -- BUILD PROJECTS
 
 
-buildExposed :: Reporting.Style -> FilePath -> Details.Details -> Maybe FilePath -> NE.List ModuleName.Raw -> Task ()
-buildExposed style root details maybeDocs exposed =
-  let
-    docsGoal = maybe Build.IgnoreDocs Build.WriteDocs maybeDocs
-  in
+buildExposed :: Reporting.Style -> FilePath -> Details.Details -> NE.List ModuleName.Raw -> Task ()
+buildExposed style root details exposed =
   Task.eio Exit.MakeCannotBuild $
-    Build.fromExposed style root details docsGoal exposed
+    Build.fromExposed style root details exposed
 
 
 buildPaths :: Reporting.Style -> FilePath -> Details.Details -> NE.List FilePath -> Task Build.Artifacts
@@ -203,17 +180,6 @@ isMain targetName modul =
 
 
 
--- HAS ONE MAIN
-
-
-hasOneMain :: Build.Artifacts -> Task ModuleName.Raw
-hasOneMain (Build.Artifacts _ _ roots modules) =
-  case roots of
-    NE.List root [] -> Task.mio Exit.MakeNoMain (return $ getMain modules root)
-    NE.List _ (_:_) -> Task.throw Exit.MakeMultipleFilesIntoHtml
-
-
-
 -- GET MAINLESS
 
 
@@ -252,16 +218,10 @@ generate style target builder names =
 -- TO BUILDER
 
 
-data DesiredMode = Debug | Dev | Prod
-
-
-toBuilder :: FilePath -> Details.Details -> DesiredMode -> Build.Artifacts -> Task B.Builder
-toBuilder root details desiredMode artifacts =
+toBuilder :: FilePath -> Details.Details -> Build.Artifacts -> Task B.Builder
+toBuilder root details artifacts =
   Task.mapError Exit.MakeBadGenerate $
-    case desiredMode of
-      Debug -> Generate.debug root details artifacts
-      Dev   -> Generate.dev   root details artifacts
-      Prod  -> Generate.prod  root details artifacts
+    Generate.debug root details artifacts
 
 
 
@@ -293,8 +253,7 @@ output =
 parseOutput :: String -> Maybe Output
 parseOutput name
   | isDevNull name      = Just DevNull
-  | hasExt ".html" name = Just (Html name)
-  | hasExt ".js"   name = Just (JS name)
+  | hasExt ".bend" name = Just (Bend name)
   | otherwise           = Nothing
 
 

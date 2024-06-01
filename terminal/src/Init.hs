@@ -98,7 +98,5 @@ init =
 defaults :: Map.Map Pkg.Name Con.Constraint
 defaults =
   Map.fromList
-    [ (Pkg.core, Con.anything)
-    , (Pkg.browser, Con.anything)
-    , (Pkg.html, Con.anything)
+    [ (Pkg.elmBend, Con.anything)
     ]

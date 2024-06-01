@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -Wall -fno-warn-name-shadowing #-}
-{-# LANGUAGE BangPatterns, EmptyDataDecls #-}
+{-# LANGUAGE BangPatterns, EmptyDataDecls, TypeSynonymInstances, FlexibleInstances #-}
 module Json.String
   ( String
   , isEmpty
@@ -42,6 +42,8 @@ import qualified Parse.Primitives as P
 type String =
   Utf8.Utf8 JSON_STRING
 
+instance Show String where
+  show = Utf8.toChars
 
 data JSON_STRING
 

@@ -34,7 +34,7 @@ data Decl
   = Value (Maybe Src.Comment) (A.Located Src.Value)
   | Union (Maybe Src.Comment) (A.Located Src.Union)
   | Alias (Maybe Src.Comment) (A.Located Src.Alias)
-  | Port (Maybe Src.Comment) Src.Port
+  deriving (Show)
 
 
 declaration :: Space.Parser E.Decl Decl
@@ -43,7 +43,6 @@ declaration =
       start <- getPosition
       oneOf E.DeclStart
         [ typeDecl maybeDocs start
-        , portDecl maybeDocs
         , valueDecl maybeDocs start
         ]
 
@@ -207,26 +206,6 @@ chompVariants variants end =
           chompVariants (variant:variants) newEnd
     ]
     (reverse variants, end)
-
-
-
--- PORT
-
-
-{-# INLINE portDecl #-}
-portDecl :: Maybe Src.Comment -> Space.Parser E.Decl Decl
-portDecl maybeDocs =
-  inContext E.Port (Keyword.port_ E.DeclStart) $
-    do  Space.chompAndCheckIndent E.PortSpace E.PortIndentName
-        name <- addLocation (Var.lower E.PortName)
-        Space.chompAndCheckIndent E.PortSpace E.PortIndentColon
-        word1 0x3A {-:-} E.PortColon
-        Space.chompAndCheckIndent E.PortSpace E.PortIndentType
-        (tipe, end) <- specialize E.PortType Type.expression
-        return
-          ( Port maybeDocs (Src.Port name tipe)
-          , end
-          )
 
 
 

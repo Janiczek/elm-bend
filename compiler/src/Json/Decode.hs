@@ -79,6 +79,7 @@ newtype Decoder x a =
 data Error x
   = DecodeProblem B.ByteString (Problem x)
   | ParseProblem B.ByteString ParseError
+  deriving (Show)
 
 
 
@@ -91,6 +92,7 @@ data Problem x
   | OneOf (Problem x) [Problem x]
   | Failure A.Region x
   | Expecting A.Region DecodeExpectation
+  deriving (Show)
 
 
 data DecodeExpectation
@@ -101,6 +103,7 @@ data DecodeExpectation
   | TInt
   | TObjectWith B.ByteString
   | TArrayPair Int
+  deriving (Show)
 
 
 
@@ -119,7 +122,9 @@ instance Functor (Decoder x) where
 
 instance Applicative (Decoder x) where
   {-# INLINE pure #-}
-  pure = return
+  pure a =
+    Decoder $ \_ ok _ ->
+      ok a
 
   {-# INLINE (<*>) #-}
   (<*>) (Decoder decodeFunc) (Decoder decodeArg) =
@@ -135,11 +140,6 @@ instance Applicative (Decoder x) where
 
 
 instance Monad (Decoder x) where
-  {-# INLINE return #-}
-  return a =
-    Decoder $ \_ ok _ ->
-      ok a
-
   {-# INLINE (>>=) #-}
   (>>=) (Decoder decodeA) callback =
     Decoder $ \ast ok err ->
@@ -460,6 +460,7 @@ data AST_
   | TRUE
   | FALSE
   | NULL
+  deriving (Show)
 
 
 
@@ -480,6 +481,7 @@ data ParseError
   | NoLeadingZeros Row Col
   | NoFloats Row Col
   | BadEnd Row Col
+  deriving (Show)
 
 --  PIndex Int ParseError Row Col
 --  PField Json.String ParseError Row Col
@@ -490,6 +492,7 @@ data StringProblem
   | BadStringControlChar
   | BadStringEscapeChar
   | BadStringEscapeHex
+  deriving (Show)
 
 
 
@@ -628,6 +631,7 @@ pString start =
 data StringStatus
   = GoodString
   | BadString StringProblem
+  deriving (Show)
 
 
 pStringHelp :: Ptr Word8 -> Ptr Word8 -> Row -> Col -> (# StringStatus, Ptr Word8, Row, Col #)
@@ -775,6 +779,7 @@ pInt =
 
 
 data IntStatus = GoodInt | BadIntEnd
+  deriving (Show)
 
 
 chompInt :: Ptr Word8 -> Ptr Word8 -> Int -> (# IntStatus, Int, Ptr Word8 #)

@@ -196,16 +196,13 @@ read root =
           case outline of
             Pkg (PkgOutline pkg _ _ _ _ deps _ _) ->
               return $
-                if Map.notMember Pkg.core deps && pkg /= Pkg.core
-                then Left Exit.OutlineNoPkgCore
+                if Map.notMember Pkg.elmBend deps && pkg /= Pkg.elmBend
+                then Left Exit.OutlineNoPkgBend
                 else Right outline
 
-            App (AppOutline _ srcDirs direct indirect _ _)
-              | Map.notMember Pkg.core direct ->
-                  return $ Left Exit.OutlineNoAppCore
-
-              | Map.notMember Pkg.json direct && Map.notMember Pkg.json indirect ->
-                  return $ Left Exit.OutlineNoAppJson
+            App (AppOutline _ srcDirs direct _ _ _)
+              | Map.notMember Pkg.elmBend direct ->
+                  return $ Left Exit.OutlineNoAppBend
 
               | otherwise ->
                   do  badDirs <- filterM (isSrcDirMissing root) (NE.toList srcDirs)

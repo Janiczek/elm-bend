@@ -949,9 +949,8 @@ data Outline
   = OutlineHasBadStructure (Decode.Error OutlineProblem)
   | OutlineHasMissingSrcDirs FilePath [FilePath]
   | OutlineHasDuplicateSrcDirs FilePath FilePath FilePath
-  | OutlineNoPkgCore
-  | OutlineNoAppCore
-  | OutlineNoAppJson
+  | OutlineNoPkgBend
+  | OutlineNoAppBend
 
 
 data OutlineProblem
@@ -1014,9 +1013,9 @@ toOutlineReport problem =
               "Remove one of the redundant entries from your \"source-directories\" field."
           ]
 
-    OutlineNoPkgCore ->
+    OutlineNoPkgBend ->
       Help.report "MISSING DEPENDENCY" (Just "elm.json")
-        "I need to see an \"elm/core\" dependency your elm.json file. The default imports\
+        "I need to see a \"Janiczek/elm-bend\" dependency your elm.json file. The default imports\
         \ of `List` and `Maybe` do not work without it."
         [ D.reflow $
             "If you modified your elm.json by hand, try to change it back! And if you are\
@@ -1024,20 +1023,10 @@ toOutlineReport problem =
             \ working package and start fresh with their elm.json file."
         ]
 
-    OutlineNoAppCore ->
+    OutlineNoAppBend ->
       Help.report "MISSING DEPENDENCY" (Just "elm.json")
-        "I need to see an \"elm/core\" dependency your elm.json file. The default imports\
+        "I need to see a \"Janiczek/elm-bend\" dependency your elm.json file. The default imports\
         \ of `List` and `Maybe` do not work without it."
-        [ D.reflow $
-            "If you modified your elm.json by hand, try to change it back! And if you are\
-            \ having trouble getting back to a working elm.json, it may be easier to delete it\
-            \ and use `elm init` to start fresh."
-        ]
-
-    OutlineNoAppJson ->
-      Help.report "MISSING DEPENDENCY" (Just "elm.json")
-        "I need to see an \"elm/json\" dependency your elm.json file. It helps me handle\
-        \ flags and ports."
         [ D.reflow $
             "If you modified your elm.json by hand, try to change it back! And if you are\
             \ having trouble getting back to a working elm.json, it may be easier to delete it\
@@ -1593,7 +1582,7 @@ data Make
   | MakePkgNeedsExposing
   | MakeMultipleFilesIntoHtml
   | MakeNoMain
-  | MakeNonMainFilesIntoJavaScript ModuleName.Raw [ModuleName.Raw]
+  | MakeNonMainFilesIntoBend ModuleName.Raw [ModuleName.Raw]
   | MakeCannotBuild BuildProblem
   | MakeBadGenerate Generate
 
@@ -1693,36 +1682,22 @@ makeToReport make =
             \ the `main` value."
         ]
 
-    MakeNonMainFilesIntoJavaScript m ms ->
+    MakeNonMainFilesIntoBend m ms ->
       case ms of
         [] ->
           Help.report "NO MAIN" Nothing
-            (
-              "When producing a JS file, I require that the given file has a `main` value. That\
-              \ way Elm." ++ ModuleName.toChars m ++ ".init() is definitely defined in the\
-              \ resulting file!"
-            )
+            "When producing a Bend file, I require that the given file has a `main` value."
             [ D.reflow $
                 "Try adding a `main` value to your file? Or if you just want to verify that this\
                 \ module compiles, switch to --output=/dev/null to skip the code gen phase\
                 \ altogether."
-            , D.toSimpleNote $
-                "Adding a `main` value can be as brief as adding something like this:"
-            , D.vcat
-                [ D.fillSep [D.cyan "import","Html"]
-                , ""
-                , D.fillSep [D.green "main","="]
-                , D.indent 2 $ D.fillSep [D.cyan "Html" <> ".text",D.dullyellow "\"Hello!\""]
-                ]
-            , D.reflow $
-                "Or use https://package.elm-lang.org/packages/elm/core/latest/Platform#worker to\
-                \ make a `main` with no user interface."
             ]
 
         _:_ ->
+          -- TODO this warning doesn't make sense for Bend.
           Help.report "NO MAIN" Nothing
             (
-              "When producing a JS file, I require that given files all have `main` values.\
+              "When producing a Bend file, I require that given files all have `main` values.\
               \ That way functions like Elm." ++ ModuleName.toChars m ++ ".init() are\
               \ definitely defined in the resulting file. I am missing `main` values in:"
             )

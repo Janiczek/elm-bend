@@ -27,9 +27,6 @@ defaults =
   , import_ ModuleName.string Nothing (typeClosed Name.string)
   , import_ ModuleName.char Nothing (typeClosed Name.char)
   , import_ ModuleName.tuple Nothing closed
-  , import_ ModuleName.platform Nothing (typeClosed Name.program)
-  , import_ ModuleName.cmd (Just Name.cmd) (typeClosed Name.cmd)
-  , import_ ModuleName.sub (Just Name.sub) (typeClosed Name.sub)
   ]
 
 

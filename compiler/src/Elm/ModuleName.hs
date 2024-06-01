@@ -12,11 +12,7 @@ module Elm.ModuleName
   , Canonical(..)
   , basics, char, string
   , maybe, result, list, array, dict, tuple
-  , platform, cmd, sub
   , debug
-  , virtualDom
-  , jsonDecode, jsonEncode
-  , webgl, texture, vector2, vector3, vector4, matrix4
   )
   where
 
@@ -133,6 +129,7 @@ data Canonical =
     { _package :: !Pkg.Name
     , _module :: !Name.Name
     }
+  deriving (Show)
 
 
 
@@ -163,121 +160,49 @@ instance Binary Canonical where
 
 {-# NOINLINE basics #-}
 basics :: Canonical
-basics = Canonical Pkg.core Name.basics
+basics = Canonical Pkg.elmBend Name.basics
 
 
 {-# NOINLINE char #-}
 char :: Canonical
-char = Canonical Pkg.core Name.char
+char = Canonical Pkg.elmBend Name.char
 
 
 {-# NOINLINE string #-}
 string :: Canonical
-string = Canonical Pkg.core Name.string
+string = Canonical Pkg.elmBend Name.string
 
 
 {-# NOINLINE maybe #-}
 maybe :: Canonical
-maybe = Canonical Pkg.core Name.maybe
+maybe = Canonical Pkg.elmBend Name.maybe
 
 
 {-# NOINLINE result #-}
 result :: Canonical
-result = Canonical Pkg.core Name.result
+result = Canonical Pkg.elmBend Name.result
 
 
 {-# NOINLINE list #-}
 list :: Canonical
-list = Canonical Pkg.core Name.list
+list = Canonical Pkg.elmBend Name.list
 
 
 {-# NOINLINE array #-}
 array :: Canonical
-array = Canonical Pkg.core Name.array
+array = Canonical Pkg.elmBend Name.array
 
 
 {-# NOINLINE dict #-}
 dict :: Canonical
-dict = Canonical Pkg.core Name.dict
+dict = Canonical Pkg.elmBend Name.dict
 
 
 {-# NOINLINE tuple #-}
 tuple :: Canonical
-tuple = Canonical Pkg.core Name.tuple
-
-
-{-# NOINLINE platform #-}
-platform :: Canonical
-platform = Canonical Pkg.core Name.platform
-
-
-{-# NOINLINE cmd #-}
-cmd :: Canonical
-cmd = Canonical Pkg.core "Platform.Cmd"
-
-
-{-# NOINLINE sub #-}
-sub :: Canonical
-sub = Canonical Pkg.core "Platform.Sub"
+tuple = Canonical Pkg.elmBend Name.tuple
 
 
 {-# NOINLINE debug #-}
 debug :: Canonical
-debug = Canonical Pkg.core Name.debug
-
-
-
--- HTML
-
-
-{-# NOINLINE virtualDom #-}
-virtualDom :: Canonical
-virtualDom = Canonical Pkg.virtualDom Name.virtualDom
-
-
-
--- JSON
-
-
-{-# NOINLINE jsonDecode #-}
-jsonDecode :: Canonical
-jsonDecode = Canonical Pkg.json "Json.Decode"
-
-
-{-# NOINLINE jsonEncode #-}
-jsonEncode :: Canonical
-jsonEncode = Canonical Pkg.json "Json.Encode"
-
-
-
--- WEBGL
-
-
-{-# NOINLINE webgl #-}
-webgl :: Canonical
-webgl = Canonical Pkg.webgl "WebGL"
-
-
-{-# NOINLINE texture #-}
-texture :: Canonical
-texture = Canonical Pkg.webgl "WebGL.Texture"
-
-
-{-# NOINLINE vector2 #-}
-vector2 :: Canonical
-vector2 = Canonical Pkg.linearAlgebra "Math.Vector2"
-
-
-{-# NOINLINE vector3 #-}
-vector3 :: Canonical
-vector3 = Canonical Pkg.linearAlgebra "Math.Vector3"
-
-
-{-# NOINLINE vector4 #-}
-vector4 :: Canonical
-vector4 = Canonical Pkg.linearAlgebra "Math.Vector4"
-
-
-{-# NOINLINE matrix4 #-}
-matrix4 :: Canonical
-matrix4 = Canonical Pkg.linearAlgebra "Math.Matrix4"
+debug = Canonical Pkg.elmBend Name.debug

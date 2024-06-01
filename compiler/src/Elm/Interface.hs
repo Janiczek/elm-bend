@@ -42,20 +42,20 @@ data Interface =
     , _aliases :: Map.Map Name.Name Alias
     , _binops  :: Map.Map Name.Name Binop
     }
-  deriving (Eq)
+  deriving (Eq, Show)
 
 
 data Union
   = OpenUnion Can.Union
   | ClosedUnion Can.Union
   | PrivateUnion Can.Union
-  deriving (Eq)
+  deriving (Eq, Show)
 
 
 data Alias
   = PublicAlias Can.Alias
   | PrivateAlias Can.Alias
-  deriving (Eq)
+  deriving (Eq, Show)
 
 
 data Binop =
@@ -65,7 +65,7 @@ data Binop =
     , _op_associativity :: Binop.Associativity
     , _op_precedence :: Binop.Precedence
     }
-  deriving (Eq)
+  deriving (Eq, Show)
 
 
 
@@ -73,7 +73,7 @@ data Binop =
 
 
 fromModule :: Pkg.Name -> Can.Module -> Map.Map Name.Name Can.Annotation -> Interface
-fromModule home (Can.Module _ exports _ _ unions aliases binops _) annotations =
+fromModule home (Can.Module _ exports _ _ unions aliases binops) annotations =
   Interface
     { _home = home
     , _values = restrict exports annotations
@@ -159,6 +159,7 @@ data DependencyInterface
       Pkg.Name
       (Map.Map Name.Name Can.Union)
       (Map.Map Name.Name Can.Alias)
+  deriving (Show)
 
 
 public :: Interface -> DependencyInterface

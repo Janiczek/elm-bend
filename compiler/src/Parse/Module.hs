@@ -3,7 +3,6 @@
 module Parse.Module
   ( fromByteString
   , ProjectType(..)
-  , isKernel
   , chompImports
   , chompImport
   )
@@ -34,7 +33,7 @@ import qualified Reporting.Error.Syntax as E
 fromByteString :: ProjectType -> BS.ByteString -> Either E.Error Src.Module
 fromByteString projectType source =
   case P.fromByteString (chompModule projectType) E.ModuleBadEnd source of
-    Right modul -> checkModule projectType modul
+    Right modul -> checkModule modul
     Left err    -> Left (E.ParseError err)
 
 
@@ -45,21 +44,14 @@ fromByteString projectType source =
 data ProjectType
   = Package Pkg.Name
   | Application
+  deriving (Show)
 
 
 isCore :: ProjectType -> Bool
 isCore projectType =
   case projectType of
-    Package pkg -> pkg == Pkg.core
+    Package pkg -> pkg == Pkg.elmBend
     Application -> False
-
-
-isKernel :: ProjectType -> Bool
-isKernel projectType =
-  case projectType of
-    Package pkg -> Pkg.isKernel pkg
-    Application -> False
-
 
 
 -- MODULE
@@ -72,13 +64,14 @@ data Module =
     , _infixes :: [A.Located Src.Infix]
     , _decls :: [Decl.Decl]
     }
+  deriving (Show)
 
 
 chompModule :: ProjectType -> Parser E.Module Module
 chompModule projectType =
   do  header <- chompHeader
       imports <- chompImports (if isCore projectType then [] else Imports.defaults)
-      infixes <- if isKernel projectType then chompInfixes [] else return []
+      infixes <- chompInfixes []
       decls <- specialize E.Declarations $ chompDecls []
       return (Module header imports infixes decls)
 
@@ -87,69 +80,31 @@ chompModule projectType =
 -- CHECK MODULE
 
 
-checkModule :: ProjectType -> Module -> Either E.Error Src.Module
-checkModule projectType (Module maybeHeader imports infixes decls) =
+checkModule :: Module -> Either E.Error Src.Module
+checkModule (Module maybeHeader imports infixes decls) =
   let
-    (values, unions, aliases, ports) = categorizeDecls [] [] [] [] decls
+    (values, unions, aliases) = categorizeDecls [] [] [] decls
   in
   case maybeHeader of
-    Just (Header name effects exports docs) ->
-      Src.Module (Just name) exports (toDocs docs decls) imports values unions aliases infixes
-        <$> checkEffects projectType ports effects
+    Just (Header name exports docs) ->
+      Right $ Src.Module (Just name) exports (toDocs docs decls) imports values unions aliases infixes
 
     Nothing ->
       Right $
-        Src.Module Nothing (A.At A.one Src.Open) (Src.NoDocs A.one) imports values unions aliases infixes $
-          case ports of
-            [] -> Src.NoEffects
-            _:_ -> Src.Ports ports
+        Src.Module Nothing (A.At A.one Src.Open) (Src.NoDocs A.one) imports values unions aliases infixes
 
 
-checkEffects :: ProjectType -> [Src.Port] -> Effects -> Either E.Error Src.Effects
-checkEffects projectType ports effects =
-  case effects of
-    NoEffects region ->
-      case ports of
-        [] ->
-          Right Src.NoEffects
-
-        Src.Port name _ : _ ->
-          case projectType of
-            Package _   -> Left (E.NoPortsInPackage name)
-            Application -> Left (E.UnexpectedPort region)
-
-    Ports region ->
-      case projectType of
-        Package _ ->
-          Left (E.NoPortModulesInPackage region)
-
-        Application ->
-          case ports of
-            []  -> Left (E.NoPorts region)
-            _:_ -> Right (Src.Ports ports)
-
-    Manager region manager ->
-      if isKernel projectType then
-        case ports of
-          []  -> Right (Src.Manager region manager)
-          _:_ -> Left (E.UnexpectedPort region)
-      else
-        Left (E.NoEffectsOutsideKernel region)
-
-
-
-categorizeDecls :: [A.Located Src.Value] -> [A.Located Src.Union] -> [A.Located Src.Alias] -> [Src.Port] -> [Decl.Decl] -> ( [A.Located Src.Value], [A.Located Src.Union], [A.Located Src.Alias], [Src.Port] )
-categorizeDecls values unions aliases ports decls =
+categorizeDecls :: [A.Located Src.Value] -> [A.Located Src.Union] -> [A.Located Src.Alias] -> [Decl.Decl] -> ( [A.Located Src.Value], [A.Located Src.Union], [A.Located Src.Alias])
+categorizeDecls values unions aliases decls =
   case decls of
     [] ->
-      (values, unions, aliases, ports)
+      (values, unions, aliases)
 
     decl:otherDecls ->
       case decl of
-        Decl.Value _ value -> categorizeDecls (value:values) unions aliases ports otherDecls
-        Decl.Union _ union -> categorizeDecls values (union:unions) aliases ports otherDecls
-        Decl.Alias _ alias -> categorizeDecls values unions (alias:aliases) ports otherDecls
-        Decl.Port  _ port_ -> categorizeDecls values unions aliases (port_:ports) otherDecls
+        Decl.Value _ value -> categorizeDecls (value:values) unions aliases otherDecls
+        Decl.Union _ union -> categorizeDecls values (union:unions) aliases otherDecls
+        Decl.Alias _ alias -> categorizeDecls values unions (alias:aliases) otherDecls
 
 
 
@@ -177,7 +132,6 @@ getComments decls comments =
         Decl.Value c (A.At _ (Src.Value n _ _ _)) -> getComments otherDecls (addComment c n comments)
         Decl.Union c (A.At _ (Src.Union n _ _  )) -> getComments otherDecls (addComment c n comments)
         Decl.Alias c (A.At _ (Src.Alias n _ _  )) -> getComments otherDecls (addComment c n comments)
-        Decl.Port  c         (Src.Port  n _    )  -> getComments otherDecls (addComment c n comments)
 
 
 addComment :: Maybe Src.Comment -> A.Located Name.Name -> [(Name.Name,Src.Comment)] -> [(Name.Name,Src.Comment)]
@@ -242,24 +196,17 @@ chompModuleDocCommentSpace =
 
 
 data Header =
-  Header (A.Located Name.Name) Effects (A.Located Src.Exposing) (Either A.Region Src.Comment)
-
-
-data Effects
-  = NoEffects A.Region
-  | Ports A.Region
-  | Manager A.Region Src.Manager
+  Header (A.Located Name.Name) (A.Located Src.Exposing) (Either A.Region Src.Comment)
+  deriving (Show)
 
 
 chompHeader :: Parser E.Module (Maybe Header)
 chompHeader =
   do  freshLine E.FreshLine
-      start <- getPosition
       oneOfWithFallback
         [
           -- module MyThing exposing (..)
           do  Keyword.module_ E.ModuleProblem
-              effectEnd <- getPosition
               Space.chompAndCheckIndent E.ModuleSpace E.ModuleProblem
               name <- addLocation (Var.moduleName E.ModuleName)
               Space.chompAndCheckIndent E.ModuleSpace E.ModuleProblem
@@ -268,104 +215,10 @@ chompHeader =
               exports <- addLocation (specialize E.ModuleExposing exposing)
               comment <- chompModuleDocCommentSpace
               return $ Just $
-                Header name (NoEffects (A.Region start effectEnd)) exports comment
-        ,
-          -- port module MyThing exposing (..)
-          do  Keyword.port_ E.PortModuleProblem
-              Space.chompAndCheckIndent E.ModuleSpace E.PortModuleProblem
-              Keyword.module_ E.PortModuleProblem
-              effectEnd <- getPosition
-              Space.chompAndCheckIndent E.ModuleSpace E.PortModuleProblem
-              name <- addLocation (Var.moduleName E.PortModuleName)
-              Space.chompAndCheckIndent E.ModuleSpace E.PortModuleProblem
-              Keyword.exposing_ E.PortModuleProblem
-              Space.chompAndCheckIndent E.ModuleSpace E.PortModuleProblem
-              exports <- addLocation (specialize E.PortModuleExposing exposing)
-              comment <- chompModuleDocCommentSpace
-              return $ Just $
-                Header name (Ports (A.Region start effectEnd)) exports comment
-        ,
-          -- effect module MyThing where { command = MyCmd } exposing (..)
-          do  Keyword.effect_ E.Effect
-              Space.chompAndCheckIndent E.ModuleSpace E.Effect
-              Keyword.module_ E.Effect
-              effectEnd <- getPosition
-              Space.chompAndCheckIndent E.ModuleSpace E.Effect
-              name <- addLocation (Var.moduleName E.ModuleName)
-              Space.chompAndCheckIndent E.ModuleSpace E.Effect
-              Keyword.where_ E.Effect
-              Space.chompAndCheckIndent E.ModuleSpace E.Effect
-              manager <- chompManager
-              Space.chompAndCheckIndent E.ModuleSpace E.Effect
-              Keyword.exposing_ E.Effect
-              Space.chompAndCheckIndent E.ModuleSpace E.Effect
-              exports <- addLocation (specialize (const E.Effect) exposing)
-              comment <- chompModuleDocCommentSpace
-              return $ Just $
-                Header name (Manager (A.Region start effectEnd) manager) exports comment
+                Header name exports comment
         ]
         -- default header
         Nothing
-
-
-chompManager :: Parser E.Module Src.Manager
-chompManager =
-  do  word1 0x7B {- { -} E.Effect
-      spaces_em
-      oneOf E.Effect
-        [ do  cmd <- chompCommand
-              spaces_em
-              oneOf E.Effect
-                [ do  word1 0x7D {-}-} E.Effect
-                      spaces_em
-                      return (Src.Cmd cmd)
-                , do  word1 0x2C {-,-} E.Effect
-                      spaces_em
-                      sub <- chompSubscription
-                      spaces_em
-                      word1 0x7D {-}-} E.Effect
-                      spaces_em
-                      return (Src.Fx cmd sub)
-                ]
-        , do  sub <- chompSubscription
-              spaces_em
-              oneOf E.Effect
-                [ do  word1 0x7D {-}-} E.Effect
-                      spaces_em
-                      return (Src.Sub sub)
-                , do  word1 0x2C {-,-} E.Effect
-                      spaces_em
-                      cmd <- chompCommand
-                      spaces_em
-                      word1 0x7D {-}-} E.Effect
-                      spaces_em
-                      return (Src.Fx cmd sub)
-                ]
-        ]
-
-
-chompCommand :: Parser E.Module (A.Located Name.Name)
-chompCommand =
-  do  Keyword.command_ E.Effect
-      spaces_em
-      word1 0x3D {-=-} E.Effect
-      spaces_em
-      addLocation (Var.upper E.Effect)
-
-
-chompSubscription :: Parser E.Module (A.Located Name.Name)
-chompSubscription =
-  do  Keyword.subscription_ E.Effect
-      spaces_em
-      word1 0x3D {-=-} E.Effect
-      spaces_em
-      addLocation (Var.upper E.Effect)
-
-
-spaces_em :: Parser E.Module ()
-spaces_em =
-  Space.chompAndCheckIndent E.ModuleSpace E.Effect
-
 
 
 -- IMPORTS

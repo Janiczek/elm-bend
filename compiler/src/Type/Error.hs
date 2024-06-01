@@ -20,7 +20,6 @@ module Type.Error
 
 import qualified Data.Map as Map
 import qualified Data.Maybe as Maybe
-import Data.Monoid ((<>))
 import qualified Data.Name as Name
 
 import qualified Data.Bag as Bag
@@ -47,6 +46,7 @@ data Type
   | Unit
   | Tuple Type Type (Maybe Type)
   | Alias ModuleName.Canonical Name.Name [(Name.Name, Type)] Type
+  deriving (Show)
 
 
 data Super
@@ -54,13 +54,14 @@ data Super
   | Comparable
   | Appendable
   | CompAppend
-  deriving (Eq)
+  deriving (Eq, Show)
 
 
 data Extension
   = Closed
   | FlexOpen Name.Name
   | RigidOpen Name.Name
+  deriving (Show)
 
 
 iteratedDealias :: Type -> Type

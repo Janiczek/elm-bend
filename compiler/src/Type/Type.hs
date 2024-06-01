@@ -16,7 +16,6 @@ module Type.Type
   , nextMark
   , (==>)
   , int, float, char, string, bool, never
-  , vec2, vec3, vec4, mat4, texture
   , mkFlexVar
   , mkFlexNumber
   , unnamedFlexVar
@@ -224,35 +223,6 @@ bool = AppN ModuleName.basics "Bool" []
 {-# NOINLINE never #-}
 never :: Type
 never = AppN ModuleName.basics "Never" []
-
-
-
--- WEBGL TYPES
-
-
-{-# NOINLINE vec2 #-}
-vec2 :: Type
-vec2 = AppN ModuleName.vector2 "Vec2" []
-
-
-{-# NOINLINE vec3 #-}
-vec3 :: Type
-vec3 = AppN ModuleName.vector3 "Vec3" []
-
-
-{-# NOINLINE vec4 #-}
-vec4 :: Type
-vec4 = AppN ModuleName.vector4 "Vec4" []
-
-
-{-# NOINLINE mat4 #-}
-mat4 :: Type
-mat4 = AppN ModuleName.matrix4 "Mat4" []
-
-
-{-# NOINLINE texture #-}
-texture :: Type
-texture = AppN ModuleName.texture "Texture" []
 
 
 

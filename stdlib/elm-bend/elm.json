@@ -1,0 +1,32 @@
+{
+    "type": "package",
+    "name": "Janiczek/elm-bend",
+    "summary": "Elm's standard libraries, tweaked for the Elm->Bend compiler",
+    "license": "BSD-3-Clause",
+    "version": "1.0.0",
+    "exposed-modules": {
+        "Primitives": [
+            "Basics",
+            "String",
+            "Char",
+            "Bitwise",
+            "Tuple"
+        ],
+        "Collections": [
+            "List",
+            "Dict",
+            "Set",
+            "Array"
+        ],
+        "Error Handling": [
+            "Maybe",
+            "Result"
+        ],
+        "Debug": [
+            "Debug"
+        ]
+    },
+    "elm-version": "0.19.0 <= v < 0.20.0",
+    "dependencies": {},
+    "test-dependencies": {}
+}

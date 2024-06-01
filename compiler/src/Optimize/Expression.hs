@@ -10,13 +10,11 @@ module Optimize.Expression
 
 import Prelude hiding (cycle)
 import Control.Monad (foldM)
-import qualified Data.Map as Map
 import qualified Data.Name as Name
 import qualified Data.Set as Set
 
 import qualified AST.Canonical as Can
 import qualified AST.Optimized as Opt
-import qualified AST.Utils.Shader as Shader
 import qualified Data.Index as Index
 import qualified Elm.ModuleName as ModuleName
 import qualified Optimize.Case as Case
@@ -43,9 +41,6 @@ optimize cycle (A.At region expression) =
         pure (Opt.VarCycle home name)
       else
         Names.registerGlobal home name
-
-    Can.VarKernel home name ->
-      Names.registerKernel home (Opt.VarKernel home name)
 
     Can.VarForeign home name _ ->
       Names.registerGlobal home name
@@ -169,9 +164,6 @@ optimize cycle (A.At region expression) =
         <*> optimize cycle a
         <*> optimize cycle b
         <*> traverse (optimize cycle) maybeC
-
-    Can.Shader src (Shader.Types attributes uniforms _varyings) ->
-      pure (Opt.Shader src (Map.keysSet attributes) (Map.keysSet uniforms))
 
 
 

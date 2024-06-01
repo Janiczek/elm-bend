@@ -12,9 +12,6 @@ module AST.Source
   , Union(..)
   , Alias(..)
   , Infix(..)
-  , Port(..)
-  , Effects(..)
-  , Manager(..)
   , Docs(..)
   , Comment(..)
   , Exposing(..)
@@ -28,7 +25,6 @@ import Data.Name (Name)
 import qualified Data.Name as Name
 
 import qualified AST.Utils.Binop as Binop
-import qualified AST.Utils.Shader as Shader
 import qualified Elm.Float as EF
 import qualified Elm.String as ES
 import qualified Parse.Primitives as P
@@ -64,10 +60,11 @@ data Expr_
   | Record [(A.Located Name, Expr)]
   | Unit
   | Tuple Expr Expr [Expr]
-  | Shader Shader.Source Shader.Types
+  deriving (Show)
 
 
 data VarType = LowVar | CapVar
+  deriving (Show)
 
 
 
@@ -77,6 +74,7 @@ data VarType = LowVar | CapVar
 data Def
   = Define (A.Located Name) [Pattern] Expr (Maybe Type)
   | Destruct Pattern Expr
+  deriving (Show)
 
 
 
@@ -100,6 +98,7 @@ data Pattern_
   | PChr ES.String
   | PStr ES.String
   | PInt Int
+  deriving (Show)
 
 
 
@@ -118,6 +117,7 @@ data Type_
   | TRecord [(A.Located Name, Type)] (Maybe (A.Located Name))
   | TUnit
   | TTuple Type Type [Type]
+  deriving (Show)
 
 
 
@@ -134,12 +134,12 @@ data Module =
     , _unions  :: [A.Located Union]
     , _aliases :: [A.Located Alias]
     , _binops  :: [A.Located Infix]
-    , _effects :: Effects
     }
+  deriving (Show)
 
 
 getName :: Module -> Name
-getName (Module maybeName _ _ _ _ _ _ _ _) =
+getName (Module maybeName _ _ _ _ _ _ _) =
   case maybeName of
     Just (A.At _ name) ->
       name
@@ -159,34 +159,28 @@ data Import =
     , _alias :: Maybe Name
     , _exposing :: Exposing
     }
+  deriving (Show)
 
 
 data Value = Value (A.Located Name) [Pattern] Expr (Maybe Type)
+  deriving (Show)
 data Union = Union (A.Located Name) [A.Located Name] [(A.Located Name, [Type])]
+  deriving (Show)
 data Alias = Alias (A.Located Name) [A.Located Name] Type
+  deriving (Show)
 data Infix = Infix Name Binop.Associativity Binop.Precedence Name
-data Port = Port (A.Located Name) Type
-
-
-data Effects
-  = NoEffects
-  | Ports [Port]
-  | Manager A.Region Manager
-
-
-data Manager
-  = Cmd (A.Located Name)
-  | Sub (A.Located Name)
-  | Fx (A.Located Name) (A.Located Name)
+  deriving (Show)
 
 
 data Docs
   = NoDocs A.Region
   | YesDocs Comment [(Name, Comment)]
+  deriving (Show)
 
 
 newtype Comment =
   Comment P.Snippet
+  deriving (Show)
 
 
 
@@ -196,14 +190,17 @@ newtype Comment =
 data Exposing
   = Open
   | Explicit [Exposed]
+  deriving (Show)
 
 
 data Exposed
   = Lower (A.Located Name)
   | Upper (A.Located Name) Privacy
   | Operator A.Region Name
+  deriving (Show)
 
 
 data Privacy
   = Public A.Region
   | Private
+  deriving (Show)

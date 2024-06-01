@@ -29,6 +29,8 @@ import GHC.Word (Word8)
 type String =
   Utf8.Utf8 ELM_STRING
 
+instance Show String where
+  show = Utf8.toChars
 
 data ELM_STRING
 

@@ -44,6 +44,7 @@ data Module =
     , _source :: B.ByteString
     , _error :: Error
     }
+  deriving (Show)
 
 
 
@@ -58,6 +59,7 @@ data Error
   | BadMains L.Localizer (OneOrMore.OneOrMore Main.Error)
   | BadPatterns (NE.List Pattern.Error)
   | BadDocs Docs.Error
+  deriving (Show)
 
 
 

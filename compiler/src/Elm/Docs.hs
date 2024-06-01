@@ -297,7 +297,7 @@ precDecoder =
 
 
 fromModule :: Can.Module -> Either E.Error Module
-fromModule modul@(Can.Module _ exports docs _ _ _ _ _) =
+fromModule modul@(Can.Module _ exports docs _ _ _ _) =
   case exports of
     Can.ExportEverything region ->
       Left (E.ImplicitExposing region)
@@ -461,10 +461,10 @@ onlyInExports name (A.At region _) =
 
 
 checkDefs :: Map.Map Name.Name (A.Located Can.Export) -> Src.Comment -> Map.Map Name.Name Src.Comment -> Can.Module -> Either E.Error Module
-checkDefs exportDict overview comments (Can.Module name _ _ decls unions aliases infixes effects) =
+checkDefs exportDict overview comments (Can.Module name _ _ decls unions aliases infixes) =
   let
     types = gatherTypes decls Map.empty
-    info = Info comments types unions aliases infixes effects
+    info = Info comments types unions aliases infixes
   in
   case Result.run (Map.traverseWithKey (checkExport info) exportDict) of
     (_, Left  problems ) -> Left  $ E.DefProblems (OneOrMore.destruct NE.List problems)
@@ -483,7 +483,6 @@ data Info =
     , _iUnions   :: Map.Map Name.Name Can.Union
     , _iAliases  :: Map.Map Name.Name Can.Alias
     , _iBinops   :: Map.Map Name.Name Can.Binop
-    , _iEffects  :: Can.Effects
     }
 
 
@@ -521,11 +520,6 @@ checkExport info name (A.At region export) =
           Result.ok $ \m ->
             m { _unions = Map.insert name (Union comment tvars []) (_unions m) }
 
-    Can.ExportPort ->
-      do  tipe <- getType name info
-          comment <- getComment region name info
-          Result.ok $ \m ->
-            m { _values = Map.insert name (Value comment tipe) (_values m) }
 
 
 getComment :: A.Region -> Name.Name -> Info -> Result.Result i w E.DefProblem Comment

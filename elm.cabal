@@ -27,7 +27,6 @@ source-repository head
     type:     git
     location: git://github.com/elm/compiler.git
 
-
 Flag dev {
   Description: Turn off optimization and make warnings errors
   Default: False
@@ -52,14 +51,9 @@ Executable elm
         Main.hs
 
     other-modules:
-        Bump
-        Develop
-        Diff
         Init
         Install
         Make
-        Publish
-        Repl
 
         -- terminal args
         Terminal
@@ -68,17 +62,9 @@ Executable elm
         Terminal.Helpers
         Terminal.Internal
 
-        -- from terminal/
-        Develop.Generate.Help
-        Develop.Generate.Index
-        Develop.StaticFiles
-        Develop.StaticFiles.Build
-
         -- from builder/
         Build
         BackgroundWriter
-        Deps.Bump
-        Deps.Diff
         Deps.Registry
         Deps.Solver
         Deps.Website
@@ -102,7 +88,6 @@ Executable elm
         Elm.Docs
         Elm.Float
         Elm.Interface
-        Elm.Kernel
         Elm.Licenses
         Elm.Magnitude
         Elm.ModuleName
@@ -129,9 +114,7 @@ Executable elm
         AST.Optimized
         AST.Source
         AST.Utils.Binop
-        AST.Utils.Shader
         AST.Utils.Type
-        Canonicalize.Effects
         Canonicalize.Environment
         Canonicalize.Environment.Dups
         Canonicalize.Environment.Foreign
@@ -141,28 +124,19 @@ Executable elm
         Canonicalize.Pattern
         Canonicalize.Type
         Compile
-        Generate.Html
-        Generate.JavaScript
-        Generate.JavaScript.Builder
-        Generate.JavaScript.Expression
-        Generate.JavaScript.Functions
-        Generate.JavaScript.Name
-        Generate.Mode
-        Nitpick.Debug
+        Generate.Bend
         Nitpick.PatternMatches
         Optimize.Case
         Optimize.DecisionTree
         Optimize.Expression
         Optimize.Module
         Optimize.Names
-        Optimize.Port
         Parse.Declaration
         Parse.Expression
         Parse.Keyword
         Parse.Module
         Parse.Number
         Parse.Pattern
-        Parse.Shader
         Parse.Space
         Parse.String
         Parse.Symbol

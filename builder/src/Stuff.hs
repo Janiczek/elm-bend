@@ -137,6 +137,7 @@ withRegistryLock (PackageCache dir) work =
 
 
 newtype PackageCache = PackageCache FilePath
+  deriving (Show)
 
 
 getPackageCache :: IO PackageCache

@@ -26,7 +26,6 @@ import qualified Canonicalize.Pattern as Pattern
 import qualified Canonicalize.Type as Type
 import qualified Data.Index as Index
 import qualified Elm.ModuleName as ModuleName
-import qualified Elm.Package as Pkg
 import qualified Reporting.Annotation as A
 import qualified Reporting.Error.Canonicalize as Error
 import qualified Reporting.Result as Result
@@ -156,10 +155,6 @@ canonicalize env (A.At region expression) =
         <$> canonicalize env a
         <*> canonicalize env b
         <*> canonicalizeTupleExtras region env cs
-
-    Src.Shader src tipe ->
-        Result.ok (Can.Shader src tipe)
-
 
 
 -- CANONICALIZE TUPLE EXTRAS
@@ -728,10 +723,7 @@ findVarQual region (Env.Env localHome vs _ _ _ qvs _ _) prefix name =
           Result.throw (Error.NotFoundVar region (Just prefix) name (toPossibleNames vs qvs))
 
     Nothing ->
-      if Name.isKernel prefix && Pkg.isKernel (ModuleName._package localHome) then
-        Result.ok $ Can.VarKernel (Name.getKernel prefix) name
-      else
-        Result.throw (Error.NotFoundVar region (Just prefix) name (toPossibleNames vs qvs))
+      Result.throw (Error.NotFoundVar region (Just prefix) name (toPossibleNames vs qvs))
 
 
 toPossibleNames :: Map.Map Name.Name Env.Var -> Env.Qualified Can.Annotation -> Error.PossibleNames

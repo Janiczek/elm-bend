@@ -65,8 +65,13 @@ fetch :: Http.Manager -> Stuff.PackageCache -> IO (Either Exit.RegistryProblem R
 fetch manager cache =
   post manager "/all-packages" allPkgsDecoder $
     \versions ->
-      do  let size = Map.foldr' addEntry 0 versions
-          let registry = Registry size versions
+      do  -- Pretend the registry contains Janiczek/elm-bend@1.0.0
+          let versions' = Map.insert
+                            Pkg.elmBend
+                            (KnownVersions (V.Version 1 0 0) [])
+                            versions
+          let size = Map.foldr' addEntry 0 versions'
+          let registry = Registry size versions'
           let path = Stuff.registry cache
           File.writeBinary path registry
           return registry

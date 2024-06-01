@@ -38,13 +38,14 @@ data Pattern
   = Anything
   | Literal Literal
   | Ctor Can.Union Name.Name [Pattern]
+  deriving (Show)
 
 
 data Literal
   = Chr ES.String
   | Str ES.String
   | Int Int
-  deriving (Eq)
+  deriving (Eq, Show)
 
 
 
@@ -191,12 +192,14 @@ nilName = "[]"
 data Error
   = Incomplete A.Region Context [Pattern]
   | Redundant A.Region A.Region Int
+  deriving (Show)
 
 
 data Context
   = BadArg
   | BadDestruct
   | BadCase
+  deriving (Show)
 
 
 
@@ -204,7 +207,7 @@ data Context
 
 
 check :: Can.Module -> Either (NE.List Error) ()
-check (Can.Module _ _ _ decls _ _ _ _) =
+check (Can.Module _ _ _ decls _ _ _) =
   case checkDecls decls [] of
     [] ->
       Right ()
@@ -265,9 +268,6 @@ checkExpr (A.At region expression) errors =
       errors
 
     Can.VarTopLevel _ _ ->
-      errors
-
-    Can.VarKernel _ _ ->
       errors
 
     Can.VarForeign _ _ _ ->
@@ -350,9 +350,6 @@ checkExpr (A.At region expression) errors =
 
             Just c ->
               checkExpr c errors
-
-    Can.Shader _ _ ->
-      errors
 
 
 
@@ -619,6 +616,7 @@ specializeRowByAnything row =
 data Complete
   = Yes [Can.Ctor]
   | No
+  deriving (Show)
 
 
 isComplete :: [[Pattern]] -> Complete

@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
-{-# LANGUAGE BangPatterns, EmptyDataDecls, FlexibleInstances, MagicHash, UnboxedTuples #-}
+{-# LANGUAGE BangPatterns, EmptyDataDecls, FlexibleInstances, MagicHash, UnboxedTuples, EmptyDataDeriving #-}
 module Data.Name
   ( Name
   --
@@ -13,7 +13,6 @@ module Data.Name
   , getKernel
   , hasDot
   , splitDots
-  , isKernel
   , isNumberType
   , isComparableType
   , isAppendableType
@@ -66,8 +65,12 @@ import qualified Elm.String as ES
 type Name =
   Utf8.Utf8 ELM_NAME
 
+instance Show Name where
+  show = Utf8.toChars
+
 
 data ELM_NAME
+  deriving (Show)
 
 
 
@@ -136,7 +139,6 @@ splitDots name =
 
 getKernel :: Name -> Name
 getKernel name@(Utf8.Utf8 ba#) =
-  assert (isKernel name)
   (
     runST
     (
@@ -158,9 +160,6 @@ getKernel name@(Utf8.Utf8 ba#) =
 -- STARTS WITH
 
 
-isKernel :: Name -> Bool
-isKernel = Utf8.startsWith prefix_kernel
-
 isNumberType :: Name -> Bool
 isNumberType = Utf8.startsWith prefix_number
 
@@ -172,10 +171,6 @@ isAppendableType = Utf8.startsWith prefix_appendable
 
 isCompappendType :: Name -> Bool
 isCompappendType = Utf8.startsWith prefix_compappend
-
-{-# NOINLINE prefix_kernel #-}
-prefix_kernel :: Name
-prefix_kernel = fromChars "Elm.Kernel."
 
 {-# NOINLINE prefix_number #-}
 prefix_number :: Name

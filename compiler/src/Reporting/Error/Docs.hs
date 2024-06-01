@@ -16,7 +16,6 @@ import qualified Data.NonEmptyList as NE
 import Parse.Primitives (Row, Col)
 import Parse.Symbol (BadOperator(..))
 import qualified Reporting.Annotation as A
-import Reporting.Doc ((<>))
 import qualified Reporting.Doc as D
 import qualified Reporting.Render.Code as Code
 import qualified Reporting.Error.Syntax as E
@@ -30,6 +29,7 @@ data Error
   | SyntaxProblem SyntaxProblem
   | NameProblems (NE.List NameProblem)
   | DefProblems (NE.List DefProblem)
+  deriving (Show)
 
 
 data SyntaxProblem
@@ -39,17 +39,20 @@ data SyntaxProblem
   | Space E.Space Row Col
   | Comma Row Col
   | BadEnd Row Col
+  deriving (Show)
 
 
 data NameProblem
   = NameDuplicate Name.Name A.Region A.Region
   | NameOnlyInDocs Name.Name A.Region
   | NameOnlyInExports Name.Name A.Region
+  deriving (Show)
 
 
 data DefProblem
   = NoComment Name.Name A.Region
   | NoAnnotation Name.Name A.Region
+  deriving (Show)
 
 
 

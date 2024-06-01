@@ -16,12 +16,9 @@ import Data.Map ((!))
 
 import qualified AST.Canonical as Can
 import qualified AST.Optimized as Opt
-import qualified AST.Utils.Type as Type
-import qualified Canonicalize.Effects as Effects
 import qualified Elm.ModuleName as ModuleName
 import qualified Optimize.Expression as Expr
 import qualified Optimize.Names as Names
-import qualified Optimize.Port as Port
 import qualified Reporting.Annotation as A
 import qualified Reporting.Error.Main as E
 import qualified Reporting.Result as Result
@@ -41,12 +38,11 @@ type Annotations =
 
 
 optimize :: Annotations -> Can.Module -> Result i [W.Warning] Opt.LocalGraph
-optimize annotations (Can.Module home _ _ decls unions aliases _ effects) =
+optimize annotations (Can.Module home _ _ decls unions aliases _) =
   addDecls home annotations decls $
-    addEffects home effects $
-      addUnions home unions $
-        addAliases home aliases $
-          Opt.LocalGraph Nothing Map.empty Map.empty
+    addUnions home unions $
+      addAliases home aliases $
+        Opt.LocalGraph Nothing Map.empty Map.empty
 
 
 
@@ -112,61 +108,6 @@ addAlias home name (Can.Alias _ tipe) graph@(Opt.LocalGraph main nodes fieldCoun
 addRecordCtorField :: Name.Name -> Can.FieldType -> Map.Map Name.Name Int -> Map.Map Name.Name Int
 addRecordCtorField name _ fields =
   Map.insertWith (+) name 1 fields
-
-
-
--- ADD EFFECTS
-
-
-addEffects :: ModuleName.Canonical -> Can.Effects -> Opt.LocalGraph -> Opt.LocalGraph
-addEffects home effects graph@(Opt.LocalGraph main nodes fields) =
-  case effects of
-    Can.NoEffects ->
-      graph
-
-    Can.Ports ports ->
-      Map.foldrWithKey (addPort home) graph ports
-
-    Can.Manager _ _ _ manager ->
-      let
-        fx = Opt.Global home "$fx$"
-        cmd = Opt.Global home "command"
-        sub = Opt.Global home "subscription"
-        link = Opt.Link fx
-        newNodes =
-          case manager of
-            Can.Cmd _ ->
-              Map.insert cmd link $
-              Map.insert fx (Opt.Manager Opt.Cmd) nodes
-
-            Can.Sub _ ->
-              Map.insert sub link $
-              Map.insert fx (Opt.Manager Opt.Sub) nodes
-
-            Can.Fx _ _ ->
-              Map.insert cmd link $
-              Map.insert sub link $
-              Map.insert fx (Opt.Manager Opt.Fx) nodes
-      in
-      Opt.LocalGraph main newNodes fields
-
-
-addPort :: ModuleName.Canonical -> Name.Name -> Can.Port -> Opt.LocalGraph -> Opt.LocalGraph
-addPort home name port_ graph =
-  case port_ of
-    Can.Incoming _ payloadType _ ->
-      let
-        (deps, fields, decoder) = Names.run (Port.toDecoder payloadType)
-        node = Opt.PortIncoming decoder deps
-      in
-      addToGraph (Opt.Global home name) node fields graph
-
-    Can.Outgoing _ payloadType _ ->
-      let
-        (deps, fields, encoder) = Names.run (Port.toEncoder payloadType)
-        node = Opt.PortOutgoing encoder deps
-      in
-      addToGraph (Opt.Global home name) node fields graph
 
 
 
@@ -236,40 +177,24 @@ addDef home annotations def graph =
     Can.Def (A.At region name) args body ->
       do  let (Can.Forall _ tipe) = annotations ! name
           Result.warn $ W.MissingTypeAnnotation region name tipe
-          addDefHelp region annotations home name args body graph
+          addDefHelp home name args body graph
 
-    Can.TypedDef (A.At region name) _ typedArgs body _ ->
-      addDefHelp region annotations home name (map fst typedArgs) body graph
+    Can.TypedDef (A.At _ name) _ typedArgs body _ ->
+      addDefHelp home name (map fst typedArgs) body graph
 
 
-addDefHelp :: A.Region -> Annotations -> ModuleName.Canonical -> Name.Name -> [Can.Pattern] -> Can.Expr -> Opt.LocalGraph -> Result i w Opt.LocalGraph
-addDefHelp region annotations home name args body graph@(Opt.LocalGraph _ nodes fieldCounts) =
+addDefHelp :: ModuleName.Canonical -> Name.Name -> [Can.Pattern] -> Can.Expr -> Opt.LocalGraph -> Result i w Opt.LocalGraph
+addDefHelp home name args body graph@(Opt.LocalGraph _ nodes fieldCounts) =
   if name /= Name._main then
     Result.ok (addDefNode home name args body Set.empty graph)
   else
     let
-      (Can.Forall _ tipe) = annotations ! name
-
       addMain (deps, fields, main) =
         addDefNode home name args body deps $
           Opt.LocalGraph (Just main) nodes (Map.unionWith (+) fields fieldCounts)
     in
-    case Type.deepDealias tipe of
-      Can.TType hm nm [_] | hm == ModuleName.virtualDom && nm == Name.node ->
-          Result.ok $ addMain $ Names.run $
-            Names.registerKernel Name.virtualDom Opt.Static
-
-      Can.TType hm nm [flags, _, message] | hm == ModuleName.platform && nm == Name.program ->
-          case Effects.checkPayload flags of
-            Right () ->
-              Result.ok $ addMain $ Names.run $
-                Opt.Dynamic message <$> Port.toFlagsDecoder flags
-
-            Left (subType, invalidPayload) ->
-              Result.throw (E.BadFlags region subType invalidPayload)
-
-      _ ->
-          Result.throw (E.BadType region tipe)
+    Result.ok $ addMain $ Names.run $
+      Names.registerKernel Name.virtualDom Opt.Static
 
 
 addDefNode :: ModuleName.Canonical -> Name.Name -> [Can.Pattern] -> Can.Expr -> Set.Set Opt.Global -> Opt.LocalGraph -> Opt.LocalGraph
@@ -299,6 +224,7 @@ data State =
     { _values :: [(Name.Name, Opt.Expr)]
     , _functions :: [Opt.Def]
     }
+  deriving (Show)
 
 
 addRecDefs :: ModuleName.Canonical -> [Can.Def] -> Opt.LocalGraph -> Opt.LocalGraph

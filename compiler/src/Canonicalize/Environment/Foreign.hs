@@ -18,7 +18,6 @@ import qualified AST.Source as Src
 import qualified Canonicalize.Environment as Env
 import qualified Elm.Interface as I
 import qualified Elm.ModuleName as ModuleName
-import qualified Elm.Package as Pkg
 import qualified Reporting.Annotation as A
 import qualified Reporting.Error.Canonicalize as Error
 import qualified Reporting.Result as Result
@@ -34,7 +33,7 @@ type Result i w a =
 
 createInitialEnv :: ModuleName.Canonical -> Map.Map ModuleName.Raw I.Interface -> [Src.Import] -> Result i w Env.Env
 createInitialEnv home ifaces imports =
-  do  (State vs ts cs bs qvs qts qcs) <- foldM (addImport ifaces) emptyState (toSafeImports home imports)
+  do  (State vs ts cs bs qvs qts qcs) <- foldM (addImport ifaces) emptyState imports
       Result.ok (Env.Env home (Map.map infoToVar vs) ts cs bs qvs qts qcs)
 
 
@@ -75,22 +74,6 @@ emptyTypes =
 -- TO SAFE IMPORTS
 
 
-toSafeImports :: ModuleName.Canonical -> [Src.Import] -> [Src.Import]
-toSafeImports (ModuleName.Canonical pkg _) imports =
-  if Pkg.isKernel pkg
-  then filter isNormal imports
-  else imports
-
-
-isNormal :: Src.Import -> Bool
-isNormal (Src.Import (A.At _ name) maybeAlias _) =
-  if Name.isKernel name
-  then
-    case maybeAlias of
-      Nothing -> False
-      Just _ -> error "kernel imports cannot use `as`"
-  else
-    True
 
 
 

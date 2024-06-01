@@ -11,10 +11,7 @@ module Elm.Package
   , toFilePath
   , toJsonString
   --
-  , dummyName, kernel, core
-  , browser, virtualDom, html
-  , json, http, url
-  , webgl, linearAlgebra
+  , dummyName, kernel, core, elmBend
   --
   , suggestions
   , nearbyNames
@@ -34,7 +31,6 @@ import qualified Data.Coerce as Coerce
 import qualified Data.List as List
 import qualified Data.Map as Map
 import qualified Data.Name as Name
-import Data.Monoid ((<>))
 import qualified Data.Utf8 as Utf8
 import Data.Word (Word8)
 import Foreign.Ptr (Ptr, plusPtr, minusPtr)
@@ -58,11 +54,18 @@ data Name =
     { _author :: !Author
     , _project :: !Project
     }
-    deriving (Ord)
+    deriving (Ord, Show)
 
 
 type Author = Utf8.Utf8 AUTHOR
+
+instance Show Author where
+  show = Utf8.toChars
+
 type Project = Utf8.Utf8 PROJECT
+
+instance Show Project where
+  show = Utf8.toChars
 
 data AUTHOR
 data PROJECT
@@ -82,7 +85,7 @@ data Canonical =
 
 isKernel :: Name -> Bool
 isKernel (Name author _) =
-  author == elm || author == elm_explorations
+  author == elm
 
 
 toChars :: Name -> String
@@ -132,52 +135,10 @@ core =
   toName elm "core"
 
 
-{-# NOINLINE browser #-}
-browser :: Name
-browser =
-  toName elm "browser"
-
-
-{-# NOINLINE virtualDom #-}
-virtualDom :: Name
-virtualDom =
-  toName elm "virtual-dom"
-
-
-{-# NOINLINE html #-}
-html :: Name
-html =
-  toName elm "html"
-
-
-{-# NOINLINE json #-}
-json :: Name
-json =
-  toName elm "json"
-
-
-{-# NOINLINE http #-}
-http :: Name
-http =
-  toName elm "http"
-
-
-{-# NOINLINE url #-}
-url :: Name
-url =
-  toName elm "url"
-
-
-{-# NOINLINE webgl #-}
-webgl :: Name
-webgl =
-  toName elm_explorations "webgl"
-
-
-{-# NOINLINE linearAlgebra #-}
-linearAlgebra :: Name
-linearAlgebra =
-  toName elm_explorations "linear-algebra"
+{-# NOINLINE elmBend #-}
+elmBend :: Name
+elmBend =
+  toName janiczek "elm-bend"
 
 
 {-# NOINLINE elm #-}
@@ -185,11 +146,10 @@ elm :: Author
 elm =
   Utf8.fromChars "elm"
 
-
-{-# NOINLINE elm_explorations #-}
-elm_explorations :: Author
-elm_explorations =
-  Utf8.fromChars "elm-explorations"
+{-# NOINLINE janiczek #-}
+janiczek :: Author
+janiczek =
+  Utf8.fromChars "Janiczek"
 
 
 
@@ -200,24 +160,9 @@ suggestions :: Map.Map Name.Name Name
 suggestions =
   let
     random = toName elm "random"
-    time = toName elm "time"
-    file = toName elm "file"
   in
   Map.fromList
-    [ "Browser" ==> browser
-    , "File" ==> file
-    , "File.Download" ==> file
-    , "File.Select" ==> file
-    , "Html" ==> html
-    , "Html.Attributes" ==> html
-    , "Html.Events" ==> html
-    , "Http" ==> http
-    , "Json.Decode" ==> json
-    , "Json.Encode" ==> json
-    , "Random" ==> random
-    , "Time" ==> time
-    , "Url.Parser" ==> url
-    , "Url" ==> url
+    [ "Random" ==> random
     ]
 
 
@@ -244,7 +189,7 @@ nearbyNames (Name author1 project1) possibleNames =
 
 authorDistance :: [Char] -> Author -> Int
 authorDistance given possibility =
-  if possibility == elm || possibility == elm_explorations
+  if possibility == elm
   then 0
   else abs (Suggest.distance given (Utf8.toChars possibility))
 
