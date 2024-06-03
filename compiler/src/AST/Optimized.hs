@@ -9,12 +9,12 @@ module AST.Optimized
   , Choice(..)
   , GlobalGraph(..)
   , LocalGraph(..)
+  , BendADT(..)
   , Main(..)
   , Node(..)
   , empty
   , addGlobalGraph
   , addLocalGraph
-  , toKernelGlobal
   )
   where
 
@@ -22,7 +22,6 @@ module AST.Optimized
 import Control.Monad (liftM, liftM2, liftM3, liftM4)
 import Data.Binary (Binary, get, put, getWord8, putWord8)
 import qualified Data.Map as Map
-import qualified Data.Name as Name
 import Data.Name (Name)
 import qualified Data.Set as Set
 
@@ -30,7 +29,6 @@ import qualified AST.Canonical as Can
 import qualified Data.Index as Index
 import qualified Elm.Float as EF
 import qualified Elm.ModuleName as ModuleName
-import qualified Elm.Package as Pkg
 import qualified Elm.String as ES
 import qualified Optimize.DecisionTree as DT
 
@@ -126,6 +124,7 @@ data GlobalGraph =
   GlobalGraph
     { _g_nodes :: Map.Map Global Node
     , _g_fields :: Map.Map Name Int
+    , _g_adts :: [BendADT]
     }
   deriving (Show)
 
@@ -135,6 +134,7 @@ data LocalGraph =
     { _l_main :: Maybe Main
     , _l_nodes :: Map.Map Global Node  -- PERF profile switching Global to Name
     , _l_fields :: Map.Map Name Int
+    , _l_adts :: [BendADT]
     }
   deriving (Show)
 
@@ -151,12 +151,17 @@ data Main
 data Node
   = Define Expr (Set.Set Global)
   | DefineTailFunc [Name] Expr (Set.Set Global)
-  | Ctor Index.ZeroBased Int
-  -- TODO | BendAdtDefinition 
   | Link Global
   | Cycle [Name] [(Name, Expr)] [Def] (Set.Set Global)
   deriving (Show)
 
+data BendADT
+  = BendADT [(Name,Int)]
+  -- type Maybe a = Just a | Nothing
+  -- ->
+  -- data ADT1 = (Just a) | (Nothing)
+  -- (the ADT name doesn't matter)
+  deriving (Show)
 
 
 -- GRAPHS
@@ -165,29 +170,25 @@ data Node
 {-# NOINLINE empty #-}
 empty :: GlobalGraph
 empty =
-  GlobalGraph Map.empty Map.empty
+  GlobalGraph Map.empty Map.empty []
 
 
 addGlobalGraph :: GlobalGraph -> GlobalGraph -> GlobalGraph
-addGlobalGraph (GlobalGraph nodes1 fields1) (GlobalGraph nodes2 fields2) =
+addGlobalGraph (GlobalGraph nodes1 fields1 adts1) (GlobalGraph nodes2 fields2 adts2) =
   GlobalGraph
     { _g_nodes = Map.union nodes1 nodes2
     , _g_fields = Map.union fields1 fields2
+    , _g_adts = adts1 ++ adts2
     }
 
 
 addLocalGraph :: LocalGraph -> GlobalGraph -> GlobalGraph
-addLocalGraph (LocalGraph _ nodes1 fields1) (GlobalGraph nodes2 fields2) =
+addLocalGraph (LocalGraph _ nodes1 fields1 adts1) (GlobalGraph nodes2 fields2 adts2) =
   GlobalGraph
     { _g_nodes = Map.union nodes1 nodes2
     , _g_fields = Map.union fields1 fields2
+    , _g_adts = adts1 ++ adts2
     }
-
-
-
-toKernelGlobal :: Name.Name -> Global
-toKernelGlobal shortName =
-  Global (ModuleName.Canonical Pkg.kernel shortName) Name.dollar
 
 
 
@@ -337,13 +338,13 @@ instance Binary Choice where
 
 
 instance Binary GlobalGraph where
-  get = liftM2 GlobalGraph get get
-  put (GlobalGraph a b) = put a >> put b
+  get = liftM3 GlobalGraph get get get
+  put (GlobalGraph a b c) = put a >> put b >> put c
 
 
 instance Binary LocalGraph where
-  get = liftM3 LocalGraph get get get
-  put (LocalGraph a b c) = put a >> put b >> put c
+  get = liftM4 LocalGraph get get get get
+  put (LocalGraph a b c d) = put a >> put b >> put c >> put d
 
 
 instance Binary Main where
@@ -365,7 +366,6 @@ instance Binary Node where
     case node of
       Define a b           -> putWord8  0 >> put a >> put b
       DefineTailFunc a b c -> putWord8  1 >> put a >> put b >> put c
-      Ctor a b             -> putWord8  2 >> put a >> put b
       Link a               -> putWord8  5 >> put a
       Cycle a b c d        -> putWord8  6 >> put a >> put b >> put c >> put d
 
@@ -374,7 +374,10 @@ instance Binary Node where
         case word of
           0  -> liftM2 Define get get
           1  -> liftM3 DefineTailFunc get get get
-          2  -> liftM2 Ctor get get
           5  -> liftM  Link get
           6  -> liftM4 Cycle get get get get
           _  -> fail "problem getting Opt.Node binary"
+
+instance Binary BendADT where
+  put (BendADT a) = put a
+  get = liftM BendADT get

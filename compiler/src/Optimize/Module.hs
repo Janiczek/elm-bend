@@ -1,5 +1,6 @@
 {-# OPTIONS_GHC -Wall #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE BangPatterns #-}
 module Optimize.Module
   ( optimize
   )
@@ -8,11 +9,11 @@ module Optimize.Module
 
 import Prelude hiding (cycle)
 import Control.Monad (foldM)
-import qualified Data.List as List
 import qualified Data.Map as Map
 import qualified Data.Name as Name
 import qualified Data.Set as Set
 import Data.Map ((!))
+import qualified Debug.Trace
 
 import qualified AST.Canonical as Can
 import qualified AST.Optimized as Opt
@@ -41,31 +42,25 @@ optimize annotations (Can.Module home _ _ decls unions aliases _) =
   addDecls home annotations decls $
     addUnions home unions $
       addAliases home aliases $
-        Opt.LocalGraph Nothing Map.empty Map.empty
+        Opt.LocalGraph Nothing Map.empty Map.empty []
 
 
 
 -- UNION
 
 
-type Nodes =
-  Map.Map Opt.Global Opt.Node
-
-
 addUnions :: ModuleName.Canonical -> Map.Map Name.Name Can.Union -> Opt.LocalGraph -> Opt.LocalGraph
-addUnions home unions (Opt.LocalGraph main nodes fields) =
-  Opt.LocalGraph main (Map.foldr (addUnion home) nodes unions) fields
+addUnions home unions (Opt.LocalGraph main nodes fields adts) =
+  Opt.LocalGraph main nodes fields (Map.foldr (addUnion home) adts unions)
 
 
-addUnion :: ModuleName.Canonical -> Can.Union -> Nodes -> Nodes
-addUnion home (Can.Union _ ctors _) nodes =
-  List.foldl' (addCtorNode home) nodes ctors
-
-
-addCtorNode :: ModuleName.Canonical -> Nodes -> Can.Ctor -> Nodes
-addCtorNode home nodes (Can.Ctor name index numArgs _) =
-  let node = Opt.Ctor index numArgs in
-  Map.insert (Opt.Global home name) node nodes
+addUnion :: ModuleName.Canonical -> Can.Union -> [Opt.BendADT] -> [Opt.BendADT]
+addUnion home (union@(Can.Union _ ctors _)) adts =
+  let !_ = Debug.Trace.trace ("XXX2: union to ADT: " ++ show (home, union)) ()
+      toCtor (Can.Ctor ctorName _ ctorLength _) = (ctorName,ctorLength)
+      adt = Opt.BendADT (map toCtor ctors)
+  in
+  adt : adts
 
 
 
@@ -78,7 +73,7 @@ addAliases home aliases graph =
 
 
 addAlias :: ModuleName.Canonical -> Name.Name -> Can.Alias -> Opt.LocalGraph -> Opt.LocalGraph
-addAlias home name (Can.Alias _ tipe) graph@(Opt.LocalGraph main nodes fieldCounts) =
+addAlias home name (Can.Alias _ tipe) graph@(Opt.LocalGraph main nodes fieldCounts adts) =
   case tipe of
     Can.TRecord fields Nothing ->
       let
@@ -93,6 +88,7 @@ addAlias home name (Can.Alias _ tipe) graph@(Opt.LocalGraph main nodes fieldCoun
         main
         (Map.insert (Opt.Global home name) node nodes)
         (Map.foldrWithKey addRecordCtorField fieldCounts fields)
+        adts
 
     _ ->
       graph
@@ -108,11 +104,12 @@ addRecordCtorField name _ fields =
 
 
 addToGraph :: Opt.Global -> Opt.Node -> Map.Map Name.Name Int -> Opt.LocalGraph -> Opt.LocalGraph
-addToGraph name node fields (Opt.LocalGraph main nodes fieldCounts) =
+addToGraph name node fields (Opt.LocalGraph main nodes fieldCounts adts) =
   Opt.LocalGraph
     main
     (Map.insert name node nodes)
     (Map.unionWith (+) fields fieldCounts)
+    adts
 
 
 
@@ -177,14 +174,14 @@ addDef home annotations def graph =
 
 
 addDefHelp :: ModuleName.Canonical -> Name.Name -> [Can.Pattern] -> Can.Expr -> Opt.LocalGraph -> Result i w Opt.LocalGraph
-addDefHelp home name args body graph@(Opt.LocalGraph _ nodes fieldCounts) =
+addDefHelp home name args body graph@(Opt.LocalGraph _ nodes fieldCounts adts) =
   if name /= Name._main then
     Result.ok (addDefNode home name args body Set.empty graph)
   else
     let
       addMain (deps, fields, main) =
         addDefNode home name args body deps $
-          Opt.LocalGraph (Just main) nodes (Map.unionWith (+) fields fieldCounts)
+          Opt.LocalGraph (Just main) nodes (Map.unionWith (+) fields fieldCounts) adts
     in
     Result.ok $ addMain $ Names.run Names.noop
 
@@ -220,7 +217,7 @@ data State =
 
 
 addRecDefs :: ModuleName.Canonical -> [Can.Def] -> Opt.LocalGraph -> Opt.LocalGraph
-addRecDefs home defs (Opt.LocalGraph main nodes fieldCounts) =
+addRecDefs home defs (Opt.LocalGraph main nodes fieldCounts adts) =
   let
     names = reverse (map toName defs)
     cycleName = Opt.Global home (Name.fromManyNames names)
@@ -235,6 +232,7 @@ addRecDefs home defs (Opt.LocalGraph main nodes fieldCounts) =
     main
     (Map.insert cycleName (Opt.Cycle names values funcs deps) (Map.union links nodes))
     (Map.unionWith (+) fields fieldCounts)
+    adts
 
 
 toName :: Can.Def -> Name.Name

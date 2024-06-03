@@ -28,10 +28,14 @@ type Graph = Map.Map Opt.Global Opt.Node
 type Mains = Map.Map ModuleName.Canonical Opt.Main
 
 generate :: Opt.GlobalGraph -> Mains -> B.Builder
-generate (Opt.GlobalGraph graph _) mains =
-  let state = Map.foldrWithKey (addMain graph) emptyState mains
-   in stateToBuilder state
-        <> "\n\n# wassup!"
+generate (Opt.GlobalGraph graph _ adts) mains =
+  let stateWithAdts = addAdts adts emptyState
+      finalState = Map.foldrWithKey (addMain graph) stateWithAdts mains
+   in stateToBuilder finalState
+
+addAdts :: [Opt.BendADT] -> State -> State
+addAdts adts state =
+  error $ "XXX3: TODO add adts: " ++ show adts
 
 addMain :: Graph -> ModuleName.Canonical -> Opt.Main -> State -> State
 addMain graph home _ state =
@@ -101,12 +105,6 @@ addGlobalHelp graph global state =
         Opt.DefineTailFunc argNames body deps ->
           let stateWithDeps = addDeps deps state
            in addFunctionDecl global argNames body stateWithDeps
-        Opt.Ctor index arity ->
-          -- addStmt
-          --   state
-          --   ( var global (Expr.generateCtor global index arity)
-          --   )
-          error "TODO Opt.Ctor"
         Opt.Link linkedGlobal ->
           -- addGlobal graph state linkedGlobal
           error "TODO Opt.Link"

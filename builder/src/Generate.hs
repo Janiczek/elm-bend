@@ -64,7 +64,7 @@ gatherMains pkg (Objects _ locals) roots =
 lookupMain :: Pkg.Name -> Map.Map ModuleName.Raw Opt.LocalGraph -> Build.Root -> Maybe (ModuleName.Canonical, Opt.Main)
 lookupMain pkg locals root =
   let
-    toPair name (Opt.LocalGraph maybeMain _ _) =
+    toPair name (Opt.LocalGraph maybeMain _ _ _) =
       (,) (ModuleName.Canonical pkg name) <$> maybeMain
   in
   case root of
