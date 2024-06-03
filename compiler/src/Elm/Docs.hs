@@ -509,13 +509,13 @@ checkExport info name (A.At region export) =
             m { _aliases = Map.insert name (Alias comment tvars (Extract.fromType tipe)) (_aliases m) }
 
     Can.ExportUnionOpen ->
-      do  let (Can.Union tvars ctors _ _) = _iUnions info ! name
+      do  let (Can.Union tvars ctors _) = _iUnions info ! name
           comment <- getComment region name info
           Result.ok $ \m ->
             m { _unions = Map.insert name (Union comment tvars (map dector ctors)) (_unions m) }
 
     Can.ExportUnionClosed ->
-      do  let (Can.Union tvars _ _ _) = _iUnions info ! name
+      do  let (Can.Union tvars _ _) = _iUnions info ! name
           comment <- getComment region name info
           Result.ok $ \m ->
             m { _unions = Map.insert name (Union comment tvars []) (_unions m) }

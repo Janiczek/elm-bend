@@ -47,8 +47,6 @@ data Expr
   | Float EF.Float
   | VarLocal Name
   | VarGlobal Global
-  | VarEnum Global Index.ZeroBased
-  | VarBox Global
   | VarCycle ModuleName.Canonical Name
   | DebugTodo
   | List [Expr]
@@ -154,7 +152,6 @@ data Node
   = Define Expr (Set.Set Global)
   | DefineTailFunc [Name] Expr (Set.Set Global)
   | Ctor Index.ZeroBased Int
-  | Enum Index.ZeroBased
   | Box
   | Link Global
   | Cycle [Name] [(Name, Expr)] [Def] (Set.Set Global)
@@ -229,8 +226,6 @@ instance Binary Expr where
       Float a          -> putWord8  4 >> put a
       VarLocal a       -> putWord8  5 >> put a
       VarGlobal a      -> putWord8  6 >> put a
-      VarEnum a b      -> putWord8  7 >> put a >> put b
-      VarBox a         -> putWord8  8 >> put a
       VarCycle a b     -> putWord8  9 >> put a >> put b
       DebugTodo        -> putWord8 10
       List a           -> putWord8 12 >> put a
@@ -258,8 +253,6 @@ instance Binary Expr where
           4  -> liftM  Float get
           5  -> liftM  VarLocal get
           6  -> liftM  VarGlobal get
-          7  -> liftM2 VarEnum get get
-          8  -> liftM  VarBox get
           9  -> liftM2 VarCycle get get
           10 -> pure   DebugTodo
           12 -> liftM  List get
@@ -377,7 +370,6 @@ instance Binary Node where
       Define a b           -> putWord8  0 >> put a >> put b
       DefineTailFunc a b c -> putWord8  1 >> put a >> put b >> put c
       Ctor a b             -> putWord8  2 >> put a >> put b
-      Enum a               -> putWord8  3 >> put a
       Box                  -> putWord8  4
       Link a               -> putWord8  5 >> put a
       Cycle a b c d        -> putWord8  6 >> put a >> put b >> put c >> put d
@@ -388,7 +380,6 @@ instance Binary Node where
           0  -> liftM2 Define get get
           1  -> liftM3 DefineTailFunc get get get
           2  -> liftM2 Ctor get get
-          3  -> liftM  Enum get
           4  -> return Box
           5  -> liftM  Link get
           6  -> liftM4 Cycle get get get get

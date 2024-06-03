@@ -137,9 +137,9 @@ restrictAliases exports aliases =
 toPublicUnion :: Union -> Maybe Can.Union
 toPublicUnion iUnion =
   case iUnion of
-    OpenUnion union                       -> Just union
-    ClosedUnion (Can.Union vars _ _ opts) -> Just (Can.Union vars [] 0 opts)
-    PrivateUnion _                        -> Nothing
+    OpenUnion union                  -> Just union
+    ClosedUnion (Can.Union vars _ _) -> Just (Can.Union vars [] 0)
+    PrivateUnion _                   -> Nothing
 
 
 toPublicAlias :: Alias -> Maybe Can.Alias

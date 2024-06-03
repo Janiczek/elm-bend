@@ -45,8 +45,8 @@ optimize cycle (A.At _ expression) =
     Can.VarForeign home name _ ->
       Names.registerGlobal home name
 
-    Can.VarCtor opts home name index _ ->
-      Names.registerCtor home name index opts
+    Can.VarCtor home name _ _ ->
+      Names.registerCtor home name
 
     Can.DebugTodo ->
       Names.registerDebugTodo
@@ -293,13 +293,10 @@ destructHelp path (A.At region pattern) revDs =
     Can.PBool _ _ ->
       pure revDs
 
-    Can.PCtor _ _ (Can.Union _ _ _ opts) _ _ args ->
+    Can.PCtor _ _ (Can.Union _ _ _) _ _ args ->
       case args of
         [Can.PatternCtorArg _ _ arg] ->
-          case opts of
-            Can.Normal -> destructHelp (Opt.Index Index.first path) arg revDs
-            Can.Unbox  -> destructHelp (Opt.Unbox path) arg revDs
-            Can.Enum   -> destructHelp (Opt.Index Index.first path) arg revDs
+          destructHelp (Opt.Index Index.first path) arg revDs
 
         _ ->
           case path of

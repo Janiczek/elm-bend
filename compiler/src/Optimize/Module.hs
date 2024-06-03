@@ -59,19 +59,13 @@ addUnions home unions (Opt.LocalGraph main nodes fields) =
 
 
 addUnion :: ModuleName.Canonical -> Can.Union -> Nodes -> Nodes
-addUnion home (Can.Union _ ctors _ opts) nodes =
-  List.foldl' (addCtorNode home opts) nodes ctors
+addUnion home (Can.Union _ ctors _) nodes =
+  List.foldl' (addCtorNode home) nodes ctors
 
 
-addCtorNode :: ModuleName.Canonical -> Can.CtorOpts -> Nodes -> Can.Ctor -> Nodes
-addCtorNode home opts nodes (Can.Ctor name index numArgs _) =
-  let
-    node =
-      case opts of
-        Can.Normal -> Opt.Ctor index numArgs
-        Can.Unbox -> Opt.Box
-        Can.Enum -> Opt.Enum index
-  in
+addCtorNode :: ModuleName.Canonical -> Nodes -> Can.Ctor -> Nodes
+addCtorNode home nodes (Can.Ctor name index numArgs _) =
+  let node = Opt.Ctor index numArgs in
   Map.insert (Opt.Global home name) node nodes
 
 

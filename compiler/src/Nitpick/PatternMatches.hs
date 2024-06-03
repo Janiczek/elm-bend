@@ -121,7 +121,7 @@ unit =
     ctor =
       Can.Ctor unitName Index.first 0 []
   in
-  Can.Union [] [ ctor ] 1 Can.Normal
+  Can.Union [] [ ctor ] 1
 
 
 {-# NOINLINE pair #-}
@@ -131,7 +131,7 @@ pair =
     ctor =
       Can.Ctor pairName Index.first 2 [Can.TVar "a", Can.TVar "b"]
   in
-  Can.Union ["a","b"] [ ctor ] 1 Can.Normal
+  Can.Union ["a","b"] [ ctor ] 1
 
 
 {-# NOINLINE triple #-}
@@ -141,7 +141,7 @@ triple =
     ctor =
       Can.Ctor tripleName Index.first 3 [Can.TVar "a", Can.TVar "b", Can.TVar "c"]
   in
-  Can.Union ["a","b","c"] [ ctor ] 1 Can.Normal
+  Can.Union ["a","b","c"] [ ctor ] 1
 
 
 {-# NOINLINE list #-}
@@ -157,7 +157,7 @@ list =
         , Can.TType ModuleName.list Name.list [Can.TVar "a"]
         ]
   in
-  Can.Union ["a"] [ nilCtor, consCtor ] 2 Can.Normal
+  Can.Union ["a"] [ nilCtor, consCtor ] 2
 
 
 {-# NOINLINE unitName #-}
@@ -273,7 +273,7 @@ checkExpr (A.At region expression) errors =
     Can.VarForeign _ _ _ ->
       errors
 
-    Can.VarCtor _ _ _ _ _ ->
+    Can.VarCtor _ _ _ _ ->
       errors
 
     Can.VarOperator _ _ _ _ ->
@@ -438,7 +438,7 @@ isExhaustive matrix n =
           <$> isExhaustive (Maybe.mapMaybe specializeRowByAnything matrix) (n - 1)
 
       else
-        let alts@(Can.Union _ altList numAlts _) = snd (Map.findMin ctors) in
+        let alts@(Can.Union _ altList numAlts) = snd (Map.findMin ctors) in
         if numSeen < numAlts then
           (:)
             <$> Maybe.mapMaybe (isMissing alts ctors) altList
@@ -628,7 +628,7 @@ isComplete matrix =
     if numSeen == 0 then
       No
     else
-      let (Can.Union _ alts numAlts _) = snd (Map.findMin ctors) in
+      let (Can.Union _ alts numAlts) = snd (Map.findMin ctors) in
       if numSeen == numAlts then Yes alts else No
 
 

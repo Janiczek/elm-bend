@@ -4,7 +4,6 @@ module AST.Canonical
   ( Expr, Expr_(..)
   , CaseBranch(..)
   , FieldUpdate(..)
-  , CtorOpts(..)
   -- definitions
   , Def(..)
   , Decls(..)
@@ -76,7 +75,7 @@ data Expr_
   = VarLocal Name
   | VarTopLevel ModuleName.Canonical Name
   | VarForeign ModuleName.Canonical Name Annotation
-  | VarCtor CtorOpts ModuleName.Canonical Name Index.ZeroBased Annotation
+  | VarCtor ModuleName.Canonical Name Index.ZeroBased Annotation
   | VarOperator Name ModuleName.Canonical Name Annotation -- CACHE real name for optimization
   | DebugTodo
   | Chr ES.String
@@ -256,16 +255,10 @@ data Union =
     { _u_vars :: [Name]
     , _u_alts :: [Ctor]
     , _u_numAlts :: Int -- CACHE numAlts for exhaustiveness checking
-    , _u_opts :: CtorOpts -- CACHE which optimizations are available
     }
   deriving (Eq, Show)
 
 
-data CtorOpts
-  = Normal
-  | Enum
-  | Unbox
-  deriving (Eq, Ord, Show)
 
 
 data Ctor = Ctor Name Index.ZeroBased Int [Type] -- CACHE length args
@@ -301,29 +294,13 @@ instance Binary Alias where
 
 
 instance Binary Union where
-  put (Union a b c d) = put a >> put b >> put c >> put d
-  get = liftM4 Union get get get get
+  put (Union a b c) = put a >> put b >> put c
+  get = liftM3 Union get get get
 
 
 instance Binary Ctor where
   get = liftM4 Ctor get get get get
   put (Ctor a b c d) = put a >> put b >> put c >> put d
-
-
-instance Binary CtorOpts where
-  put opts =
-    case opts of
-      Normal -> putWord8 0
-      Enum   -> putWord8 1
-      Unbox  -> putWord8 2
-
-  get =
-    do  n <- getWord8
-        case n of
-          0 -> return Normal
-          1 -> return Enum
-          2 -> return Unbox
-          _ -> fail "binary encoding of CtorOpts was corrupted"
 
 
 instance Binary Annotation where

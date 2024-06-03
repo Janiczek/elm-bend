@@ -185,7 +185,7 @@ extractUnion (Types dict) (Opt.Global home name) =
     else
       let
         pname = toPublicName home name
-        (Can.Union vars ctors _ _) = _union_info (dict ! home) ! name
+        (Can.Union vars ctors _) = _union_info (dict ! home) ! name
       in
       T.Union pname vars <$> traverse extractCtor ctors
 

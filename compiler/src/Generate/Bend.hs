@@ -106,6 +106,7 @@ addGlobalHelp graph global state =
           --   state
           --   ( var global (Expr.generateCtor global index arity)
           --   )
+          let !_ = Debug.Trace.trace ("XXX1: ctor" ++ show (index, arity)) () in
           error "TODO Opt.Ctor"
         Opt.Link linkedGlobal ->
           -- addGlobal graph state linkedGlobal
@@ -116,12 +117,6 @@ addGlobalHelp graph global state =
           --   ( generateCycle global names values functions
           --   )
           error "TODO Opt.Cycle"
-        Opt.Enum index ->
-          -- addStmt
-          --   state
-          --   ( generateEnum global index
-          --   )
-          error "TODO Opt.Enum"
         Opt.Box ->
           -- = newtype, most likely
           error "TODO Opt.Box"
@@ -195,8 +190,6 @@ exprToBuilder expr =
           Float.toBuilder f
         Opt.VarLocal name -> error "TODO exprToBuilder VarLocal"
         Opt.VarGlobal name -> error "TODO exprToBuilder VarGlobal"
-        Opt.VarEnum name i -> error "TODO exprToBuilder VarEnum"
-        Opt.VarBox name -> error "TODO exprToBuilder VarBox"
         Opt.VarCycle moduleName name -> error "TODO exprToBuilder VarCycle"
         Opt.DebugTodo -> error "TODO exprToBuilder DebugTodo"
         Opt.List list ->

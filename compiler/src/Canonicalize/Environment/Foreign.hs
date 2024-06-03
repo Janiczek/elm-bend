@@ -137,7 +137,7 @@ unionToType home name union =
 
 
 unionToTypeHelp :: ModuleName.Canonical -> Name.Name -> Can.Union -> (Env.Type, Env.Exposed Env.Ctor)
-unionToTypeHelp home name union@(Can.Union vars ctors _ _) =
+unionToTypeHelp home name union@(Can.Union vars ctors _) =
   let
     addCtor dict (Can.Ctor ctor index _ args) =
       Map.insert ctor (Env.Specific home (Env.Ctor home name union index args)) dict

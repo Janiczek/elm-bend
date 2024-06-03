@@ -297,7 +297,7 @@ canonicalizeUnion env@(Env.Env home _ _ _ _ _ _ _) (A.At _ (Src.Union (A.At _ na
   do  cctors <- Index.indexedTraverse (canonicalizeCtor env) ctors
       let vars = map A.toValue avars
       let alts = map A.toValue cctors
-      let union = Can.Union vars alts (length alts) (toOpts ctors)
+      let union = Can.Union vars alts (length alts)
       Result.ok
         ( (name, union)
         , Dups.unions $ map (toCtor home name union) cctors
@@ -309,16 +309,6 @@ canonicalizeCtor env index (A.At region ctor, tipes) =
   do  ctipes <- traverse (Type.canonicalize env) tipes
       Result.ok $ A.At region $
         Can.Ctor ctor index (length ctipes) ctipes
-
-
-toOpts :: [(A.Located Name.Name, [Src.Type])] -> Can.CtorOpts
-toOpts ctors =
-  case ctors of
-    [ (_,[_]) ] ->
-      Can.Unbox
-
-    _ ->
-      if all (null . snd) ctors then Can.Enum else Can.Normal
 
 
 toCtor :: ModuleName.Canonical -> Name.Name -> Can.Union -> A.Located Can.Ctor -> CtorDups

@@ -48,7 +48,7 @@ constrain rtv (A.At region expression) expected =
     Can.VarForeign _ name annotation ->
       return $ CForeign region name annotation expected
 
-    Can.VarCtor _ _ name _ annotation ->
+    Can.VarCtor _ name _ annotation ->
       return $ CForeign region name annotation expected
 
     Can.DebugTodo ->
@@ -214,7 +214,7 @@ getName (A.At _ expr) =
     Can.VarLocal name        -> FuncName name
     Can.VarTopLevel _ name   -> FuncName name
     Can.VarForeign _ name _  -> FuncName name
-    Can.VarCtor _ _ name _ _ -> CtorName name
+    Can.VarCtor _ name _ _   -> CtorName name
     Can.VarOperator op _ _ _ -> OpName op
     _                        -> NoName
 
