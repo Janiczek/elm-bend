@@ -39,7 +39,7 @@ addAdts adts state =
   List.foldl' addAdt state (zip [0..] adts)
 
 addAdt :: State -> (Int,Opt.BendADT) -> State
-addAdt (State revBuilders seenGlobals) (i,Opt.BendADT constructors) =
+addAdt state (i,Opt.BendADT constructors) =
   -- data Adt5 = (A) | (B arg1) | (C arg1 arg2)
   let adtName = "Adt" <> B.stringUtf8 (show i)
       constructorToBuilder (name, args) =
@@ -50,7 +50,7 @@ addAdt (State revBuilders seenGlobals) (i,Opt.BendADT constructors) =
       cs = joinWith " | " constructorToBuilder constructors
       builder = "data " <> adtName <> " = " <> cs
   in
-  State (builder : revBuilders) seenGlobals
+  addBuilder builder state
 
 addMain :: Graph -> ModuleName.Canonical -> Opt.Main -> State -> State
 addMain graph home _ state =
@@ -109,7 +109,7 @@ addGlobal graph state@(State revBuilders seen) global =
 
 addGlobalHelp :: Graph -> Opt.Global -> State -> State
 addGlobalHelp graph global state =
-  let !_ = Debug.Trace.trace ("XXX0: global: " ++ show global) ()
+  let !_ = Debug.Trace.trace ("XXX0: trying to get global: " ++ show global) ()
       addDeps deps someState =
         Set.foldl' (addGlobal graph) someState deps
       node = graph ! global
