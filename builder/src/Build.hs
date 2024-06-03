@@ -3,12 +3,10 @@
 module Build
   ( fromExposed
   , fromPaths
-  , fromRepl
   , Artifacts(..)
   , Root(..)
   , Module(..)
   , CachedInterface(..)
-  , ReplArtifacts(..)
   , getRootNames
   )
   where
@@ -245,7 +243,7 @@ data Status
   | SBadImport Import.Problem
   | SBadSyntax FilePath File.Time B.ByteString Syntax.Error
   | SForeign Pkg.Name
-  | SKernel
+  deriving (Show)
 
 
 crawlDeps :: Env -> MVar StatusDict -> [ModuleName.Raw] -> a -> IO a
@@ -418,9 +416,6 @@ checkModule env@(Env _ root projectType _ _ _ _) foreigns resultsMVar name statu
       case foreigns ! ModuleName.Canonical home name of
         I.Public iface -> return (RForeign iface)
         I.Private _ _ _ -> error $ "mistakenly seeing private interface for " ++ Pkg.toChars home ++ " " ++ ModuleName.toChars name
-
-    SKernel ->
-      return RKernel
 
 
 
@@ -637,7 +632,6 @@ addToGraph name status graph =
         SBadImport _                                -> []
         SBadSyntax _ _ _ _                          -> []
         SForeign _                                  -> []
-        SKernel                                     -> []
   in
   (name, name, dependencies) : graph
 
@@ -685,7 +679,6 @@ checkInside name p1 status =
     SBadImport _                              -> Right ()
     SBadSyntax _ _ _ _                        -> Right ()
     SForeign _                                -> Right ()
-    SKernel                                   -> Right ()
 
 
 
@@ -793,94 +786,6 @@ addImportProblems results name problems =
     RBlocked      -> problems
     RForeign _    -> problems
     RKernel       -> problems
-
-
-
---------------------------------------------------------------------------------
------- NOW FOR SOME REPL STUFF -------------------------------------------------
---------------------------------------------------------------------------------
-
-
--- FROM REPL
-
-
-data ReplArtifacts =
-  ReplArtifacts
-    { _repl_home :: ModuleName.Canonical
-    , _repl_modules :: [Module]
-    , _repl_localizer :: L.Localizer
-    , _repl_annotations :: Map.Map Name.Name Can.Annotation
-    }
-
-
-fromRepl :: FilePath -> Details.Details -> B.ByteString -> IO (Either Exit.Repl ReplArtifacts)
-fromRepl root details source =
-  do  env@(Env _ _ projectType _ _ _ _) <- makeEnv Reporting.ignorer root details
-      case Parse.fromByteString projectType source of
-        Left syntaxError ->
-          return $ Left $ Exit.ReplBadInput source $ Error.BadSyntax syntaxError
-
-        Right modul@(Src.Module _ _ _ imports _ _ _ _) ->
-          do  dmvar <- Details.loadInterfaces root details
-
-              let deps = map Src.getImportName imports
-              mvar <- newMVar Map.empty
-              crawlDeps env mvar deps ()
-
-              statuses <- traverse readMVar =<< readMVar mvar
-              midpoint <- checkMidpoint dmvar statuses
-
-              case midpoint of
-                Left problem ->
-                  return $ Left $ Exit.ReplProjectProblem problem
-
-                Right foreigns ->
-                  do  rmvar <- newEmptyMVar
-                      resultMVars <- forkWithKey (checkModule env foreigns rmvar) statuses
-                      putMVar rmvar resultMVars
-                      results <- traverse readMVar resultMVars
-                      writeDetails root details results
-                      depsStatus <- checkDeps root resultMVars deps 0
-                      finalizeReplArtifacts env source modul depsStatus resultMVars results
-
-
-finalizeReplArtifacts :: Env -> B.ByteString -> Src.Module -> DepsStatus -> ResultDict -> Map.Map ModuleName.Raw Result -> IO (Either Exit.Repl ReplArtifacts)
-finalizeReplArtifacts env@(Env _ root projectType _ _ _ _) source modul@(Src.Module _ _ _ imports _ _ _ _) depsStatus resultMVars results =
-  let
-    pkg =
-      projectTypeToPkg projectType
-
-    compileInput ifaces =
-      case Compile.compile pkg ifaces modul of
-        Right (Compile.Artifacts canonical annotations objects) ->
-          let
-            h = Can._name canonical
-            m = Fresh (Src.getName modul) (I.fromModule pkg canonical annotations) objects
-            ms = Map.foldrWithKey addInside [] results
-          in
-          return $ Right $ ReplArtifacts h (m:ms) (L.fromModule modul) annotations
-
-        Left errors ->
-          return $ Left $ Exit.ReplBadInput source errors
-  in
-  case depsStatus of
-    DepsChange ifaces ->
-      compileInput ifaces
-
-    DepsSame same cached ->
-      do  maybeLoaded <- loadInterfaces root same cached
-          case maybeLoaded of
-            Just ifaces -> compileInput ifaces
-            Nothing     -> return $ Left $ Exit.ReplBadCache
-
-    DepsBlock ->
-      case Map.foldr addErrors [] results of
-        []   -> return $ Left $ Exit.ReplBlocked
-        e:es -> return $ Left $ Exit.ReplBadLocalDeps root e es
-
-    DepsNotFound problems ->
-      return $ Left $ Exit.ReplBadInput source $ Error.BadImports $
-        toImportErrors env resultMVars imports problems
 
 
 

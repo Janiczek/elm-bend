@@ -25,12 +25,10 @@ module Data.Name
   , sepBy
   --
   , int, float, bool, char, string
-  , maybe, result, list, array, dict, tuple, jsArray
-  , task, router, cmd, sub, platform, virtualDom
-  , shader, debug, debugger, bitwise, basics
+  , maybe, result, list, array, dict, tuple, _todo
+  , debug, bitwise, basics
   , utils, negate, true, false, value
   , node, program, _main, _Main, dollar, identity
-  , replModule, replValueToPrint
   )
   where
 
@@ -480,54 +478,9 @@ tuple :: Name
 tuple = fromChars "Tuple"
 
 
-{-# NOINLINE jsArray #-}
-jsArray :: Name
-jsArray = fromChars "JsArray"
-
-
-{-# NOINLINE task #-}
-task :: Name
-task = fromChars "Task"
-
-
-{-# NOINLINE router #-}
-router :: Name
-router = fromChars "Router"
-
-
-{-# NOINLINE cmd #-}
-cmd :: Name
-cmd = fromChars "Cmd"
-
-
-{-# NOINLINE sub #-}
-sub :: Name
-sub = fromChars "Sub"
-
-
-{-# NOINLINE platform #-}
-platform :: Name
-platform = fromChars "Platform"
-
-
-{-# NOINLINE virtualDom #-}
-virtualDom :: Name
-virtualDom = fromChars "VirtualDom"
-
-
-{-# NOINLINE shader #-}
-shader :: Name
-shader = fromChars "Shader"
-
-
 {-# NOINLINE debug #-}
 debug :: Name
 debug = fromChars "Debug"
-
-
-{-# NOINLINE debugger #-}
-debugger :: Name
-debugger = fromChars "Debugger"
 
 
 {-# NOINLINE bitwise #-}
@@ -575,6 +528,10 @@ program :: Name
 program = fromChars "Program"
 
 
+{-# NOINLINE _todo #-}
+_todo :: Name
+_todo = fromChars "todo"
+
 {-# NOINLINE _main #-}
 _main :: Name
 _main = fromChars "main"
@@ -593,13 +550,3 @@ dollar = fromChars "$"
 {-# NOINLINE identity #-}
 identity :: Name
 identity = fromChars "identity"
-
-
-{-# NOINLINE replModule #-}
-replModule :: Name
-replModule = fromChars "Elm_Repl"
-
-
-{-# NOINLINE replValueToPrint #-}
-replValueToPrint :: Name
-replValueToPrint = fromChars "repl_input_value_"

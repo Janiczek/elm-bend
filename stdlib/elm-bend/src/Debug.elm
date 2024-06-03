@@ -6,6 +6,8 @@ module Debug exposing (todo)
 
 -}
 
+import String exposing (String)
+
 
 {-| This will be caught by the compiler and it will crash in compile time.
 -}

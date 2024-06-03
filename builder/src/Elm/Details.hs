@@ -104,6 +104,7 @@ data Local =
     , _lastChange :: BuildID
     , _lastCompile :: BuildID
     }
+    deriving (Show)
 
 
 data Foreign =

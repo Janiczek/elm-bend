@@ -33,7 +33,6 @@ import qualified Elm.ModuleName as ModuleName
 import qualified Elm.Package as Pkg
 import qualified Elm.String as ES
 import qualified Optimize.DecisionTree as DT
-import qualified Reporting.Annotation as A
 
 
 
@@ -51,7 +50,7 @@ data Expr
   | VarEnum Global Index.ZeroBased
   | VarBox Global
   | VarCycle ModuleName.Canonical Name
-  | VarDebug Name ModuleName.Canonical A.Region (Maybe Name)
+  | DebugTodo
   | List [Expr]
   | Function [Name] Expr
   | Call Expr [Expr]
@@ -233,7 +232,7 @@ instance Binary Expr where
       VarEnum a b      -> putWord8  7 >> put a >> put b
       VarBox a         -> putWord8  8 >> put a
       VarCycle a b     -> putWord8  9 >> put a >> put b
-      VarDebug a b c d -> putWord8 10 >> put a >> put b >> put c >> put d
+      DebugTodo        -> putWord8 10
       List a           -> putWord8 12 >> put a
       Function a b     -> putWord8 13 >> put a >> put b
       Call a b         -> putWord8 14 >> put a >> put b
@@ -262,7 +261,7 @@ instance Binary Expr where
           7  -> liftM2 VarEnum get get
           8  -> liftM  VarBox get
           9  -> liftM2 VarCycle get get
-          10 -> liftM4 VarDebug get get get get
+          10 -> pure   DebugTodo
           12 -> liftM  List get
           13 -> liftM2 Function get get
           14 -> liftM2 Call get get

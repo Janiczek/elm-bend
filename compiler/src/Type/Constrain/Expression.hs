@@ -51,8 +51,8 @@ constrain rtv (A.At region expression) expected =
     Can.VarCtor _ _ name _ annotation ->
       return $ CForeign region name annotation expected
 
-    Can.VarDebug _ name annotation ->
-      return $ CForeign region name annotation expected
+    Can.DebugTodo ->
+      return CTrue
 
     Can.VarOperator op _ _ annotation ->
       return $ CForeign region op annotation expected

@@ -31,7 +31,7 @@ type Cycle =
 
 
 optimize :: Cycle -> Can.Expr -> Names.Tracker Opt.Expr
-optimize cycle (A.At region expression) =
+optimize cycle (A.At _ expression) =
   case expression of
     Can.VarLocal name ->
       pure (Opt.VarLocal name)
@@ -48,8 +48,8 @@ optimize cycle (A.At region expression) =
     Can.VarCtor opts home name index _ ->
       Names.registerCtor home name index opts
 
-    Can.VarDebug home name _ ->
-      Names.registerDebug name home region
+    Can.DebugTodo ->
+      Names.registerDebugTodo
 
     Can.VarOperator _ home name _ ->
       Names.registerGlobal home name

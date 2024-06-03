@@ -276,10 +276,10 @@ checkExpr (A.At region expression) errors =
     Can.VarCtor _ _ _ _ _ ->
       errors
 
-    Can.VarDebug _ _ _ ->
+    Can.VarOperator _ _ _ _ ->
       errors
 
-    Can.VarOperator _ _ _ _ ->
+    Can.DebugTodo ->
       errors
 
     Can.Chr _ ->

@@ -1,5 +1,6 @@
 {-# OPTIONS_GHC -Wall #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE BangPatterns #-}
 module Canonicalize.Expression
   ( canonicalize
   , FreeLocals
@@ -25,7 +26,6 @@ import qualified Canonicalize.Environment.Dups as Dups
 import qualified Canonicalize.Pattern as Pattern
 import qualified Canonicalize.Type as Type
 import qualified Data.Index as Index
-import qualified Elm.ModuleName as ModuleName
 import qualified Reporting.Annotation as A
 import qualified Reporting.Error.Canonicalize as Error
 import qualified Reporting.Result as Result
@@ -692,10 +692,7 @@ findVar region (Env.Env localHome vs _ _ _ qvs _ _) name =
 
         Env.Foreign home annotation ->
           Result.ok $
-            if home == ModuleName.debug then
-              Can.VarDebug localHome name annotation
-            else
-              Can.VarForeign home name annotation
+            Can.VarForeign home name annotation
 
         Env.Foreigns h hs ->
           Result.throw (Error.AmbiguousVar region Nothing name h hs)
@@ -705,16 +702,13 @@ findVar region (Env.Env localHome vs _ _ _ qvs _ _) name =
 
 
 findVarQual :: A.Region -> Env.Env -> Name.Name -> Name.Name -> Result FreeLocals w Can.Expr_
-findVarQual region (Env.Env localHome vs _ _ _ qvs _ _) prefix name =
+findVarQual region (Env.Env _ vs _ _ _ qvs _ _) prefix name =
   case Map.lookup prefix qvs of
     Just qualified ->
       case Map.lookup name qualified of
         Just (Env.Specific home annotation) ->
           Result.ok $
-            if home == ModuleName.debug then
-              Can.VarDebug localHome name annotation
-            else
-              Can.VarForeign home name annotation
+            Can.VarForeign home name annotation
 
         Just (Env.Ambiguous h hs) ->
           Result.throw (Error.AmbiguousVar region (Just prefix) name h hs)
@@ -723,7 +717,10 @@ findVarQual region (Env.Env localHome vs _ _ _ qvs _ _) prefix name =
           Result.throw (Error.NotFoundVar region (Just prefix) name (toPossibleNames vs qvs))
 
     Nothing ->
-      Result.throw (Error.NotFoundVar region (Just prefix) name (toPossibleNames vs qvs))
+      if (prefix,name) == (Name.debug, Name._todo) then
+        Result.ok Can.DebugTodo 
+      else
+        Result.throw (Error.NotFoundVar region (Just prefix) name (toPossibleNames vs qvs))
 
 
 toPossibleNames :: Map.Map Name.Name Env.Var -> Env.Qualified Can.Annotation -> Error.PossibleNames

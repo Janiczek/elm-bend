@@ -193,8 +193,7 @@ addDefHelp home name args body graph@(Opt.LocalGraph _ nodes fieldCounts) =
         addDefNode home name args body deps $
           Opt.LocalGraph (Just main) nodes (Map.unionWith (+) fields fieldCounts)
     in
-    Result.ok $ addMain $ Names.run $
-      Names.registerKernel Name.virtualDom Opt.Static
+    Result.ok $ addMain $ Names.run Names.noop
 
 
 addDefNode :: ModuleName.Canonical -> Name.Name -> [Can.Pattern] -> Can.Expr -> Set.Set Opt.Global -> Opt.LocalGraph -> Opt.LocalGraph

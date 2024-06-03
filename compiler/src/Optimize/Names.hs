@@ -7,11 +7,12 @@ module Optimize.Names
   , generate
   , registerKernel
   , registerGlobal
-  , registerDebug
+  , registerDebugTodo
   , registerCtor
   , registerField
   , registerFieldDict
   , registerFieldList
+  , noop
   )
   where
 
@@ -24,7 +25,6 @@ import qualified AST.Canonical as Can
 import qualified AST.Optimized as Opt
 import qualified Data.Index as Index
 import qualified Elm.ModuleName as ModuleName
-import qualified Reporting.Annotation as A
 
 
 
@@ -53,6 +53,11 @@ generate =
   Tracker $ \uid deps fields ok ->
     ok (uid + 1) deps fields (Name.fromVarIndex uid)
 
+noop :: Tracker Opt.Main
+noop =
+  Tracker $ \uid deps fields ok ->
+    ok uid deps fields Opt.Static
+
 
 registerKernel :: Name.Name -> a -> Tracker a
 registerKernel home value =
@@ -67,11 +72,11 @@ registerGlobal home name =
     ok uid (Set.insert global deps) fields (Opt.VarGlobal global)
 
 
-registerDebug :: Name.Name -> ModuleName.Canonical -> A.Region -> Tracker Opt.Expr
-registerDebug name home region =
+registerDebugTodo :: Tracker Opt.Expr
+registerDebugTodo =
   Tracker $ \uid deps fields ok ->
-    let global = Opt.Global ModuleName.debug name in
-    ok uid (Set.insert global deps) fields (Opt.VarDebug name home region Nothing)
+    let global = Opt.Global ModuleName.debug Name._todo in
+    ok uid (Set.insert global deps) fields Opt.DebugTodo
 
 
 registerCtor :: ModuleName.Canonical -> Name.Name -> Index.ZeroBased -> Can.CtorOpts -> Tracker Opt.Expr

@@ -198,7 +198,7 @@ exprToBuilder expr =
         Opt.VarEnum name i -> error "TODO exprToBuilder VarEnum"
         Opt.VarBox name -> error "TODO exprToBuilder VarBox"
         Opt.VarCycle moduleName name -> error "TODO exprToBuilder VarCycle"
-        Opt.VarDebug _ _ _ _ -> error "TODO exprToBuilder VarDebug"
+        Opt.DebugTodo -> error "TODO exprToBuilder DebugTodo"
         Opt.List list ->
           "[" <> joinWith "," f list <> "]"
         Opt.Function args body -> error "TODO exprToBuilder Function"
