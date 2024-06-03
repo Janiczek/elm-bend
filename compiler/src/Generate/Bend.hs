@@ -30,12 +30,27 @@ type Mains = Map.Map ModuleName.Canonical Opt.Main
 generate :: Opt.GlobalGraph -> Mains -> B.Builder
 generate (Opt.GlobalGraph graph _ adts) mains =
   let stateWithAdts = addAdts adts emptyState
+      !_ = Debug.Trace.trace ("after ADTs: " ++ show stateWithAdts) ()
       finalState = Map.foldrWithKey (addMain graph) stateWithAdts mains
    in stateToBuilder finalState
 
 addAdts :: [Opt.BendADT] -> State -> State
 addAdts adts state =
-  error $ "XXX3: TODO add adts: " ++ show adts
+  List.foldl' addAdt state (zip [0..] adts)
+
+addAdt :: State -> (Int,Opt.BendADT) -> State
+addAdt (State revBuilders seenGlobals) (i,Opt.BendADT constructors) =
+  -- data Adt5 = (A) | (B arg1) | (C arg1 arg2)
+  let adtName = "Adt" <> B.stringUtf8 (show i)
+      constructorToBuilder (name, args) =
+        let arg i = B.stringUtf8 $ "arg" <> show i in
+        if args == 0
+          then "(" <> Name.toBuilder name <> ")"
+          else "(" <> Name.toBuilder name <> " " <> joinWith " " arg [1..args] <> ")"
+      cs = joinWith " | " constructorToBuilder constructors
+      builder = "data " <> adtName <> " = " <> cs
+  in
+  State (builder : revBuilders) seenGlobals
 
 addMain :: Graph -> ModuleName.Canonical -> Opt.Main -> State -> State
 addMain graph home _ state =
@@ -47,6 +62,7 @@ data State = State
   { _revBuilders :: [B.Builder],
     _seenGlobals :: Set.Set Opt.Global
   }
+  deriving (Show)
 
 emptyState :: State
 emptyState =
