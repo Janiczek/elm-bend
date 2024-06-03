@@ -15,7 +15,6 @@ module Make
 import qualified Data.ByteString.Builder as B
 import qualified Data.Maybe as Maybe
 import qualified Data.NonEmptyList as NE
-import qualified Debug.Trace
 import qualified System.Directory as Dir
 import qualified System.FilePath as FP
 
@@ -90,8 +89,6 @@ runHelp root paths style (Flags maybeOutput _) =
 
                     [name] ->
                       do  builder <- toBuilder root details artifacts
-                          let !_ = Debug.Trace.trace "XXX2: got builder!!" ()
-                          let !_ = Debug.Trace.trace (show $ B.toLazyByteString builder) ()
                           generate style "out.bend" builder (NE.List name [])
 
                     name:names ->

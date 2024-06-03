@@ -91,11 +91,11 @@ addGlobal graph state@(State revBuilders seen) global =
 
 addGlobalHelp :: Graph -> Opt.Global -> State -> State
 addGlobalHelp graph global state =
-  let !_ = Debug.Trace.trace ("XXX0: (" ++ show global ++ ")") ()
+  let !_ = Debug.Trace.trace ("XXX0: global: " ++ show global) ()
       addDeps deps someState =
         Set.foldl' (addGlobal graph) someState deps
       node = graph ! global
-      !_ = Debug.Trace.trace ("XXX1: node: (" ++ show node ++ ")") ()
+      !_ = Debug.Trace.trace ("XXX1: node: " ++ show node) ()
    in case node of
         Opt.Define expr deps ->
           let stateWithDeps = addDeps deps state
