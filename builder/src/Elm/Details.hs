@@ -28,7 +28,6 @@ import qualified Data.OneOrMore as OneOrMore
 import qualified Data.Set as Set
 import qualified Data.Utf8 as Utf8
 import Data.Word (Word64)
-import qualified Debug.Trace
 import qualified System.Directory as Dir
 import System.FilePath ((</>), (<.>))
 
@@ -456,20 +455,6 @@ build key cache depsMVar pkg (Solver.Details vsn _) f fs =
                       putMVar mvar mvars
                       mapM_ readMVar mvars
                       maybeStatuses <- traverse readMVar =<< readMVar mvar
-                      let !_ = Debug.Trace.trace
-                                ("XXX1: Couldnt build dependency modules: "
-                                  ++ (show $
-                                      Map.keys $
-                                      Map.filter
-                                        (\x ->
-                                          case x of
-                                            Nothing -> True
-                                            Just _ -> False
-                                        )
-                                        maybeStatuses
-                                      )
-                                )
-                                ()
                       case sequence maybeStatuses of
                         Nothing ->
                           do  Reporting.report key Reporting.DBroken
