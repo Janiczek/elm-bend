@@ -40,8 +40,7 @@ import qualified Optimize.DecisionTree as DT
 
 
 data Expr
-  = Bool Bool
-  | Chr ES.String
+  = Chr ES.String
   | Str ES.String
   | Int Int
   | Float EF.Float
@@ -153,6 +152,7 @@ data Node
   = Define Expr (Set.Set Global)
   | DefineTailFunc [Name] Expr (Set.Set Global)
   | Ctor Index.ZeroBased Int
+  -- TODO | BendAdtDefinition 
   | Link Global
   | Cycle [Name] [(Name, Expr)] [Def] (Set.Set Global)
   deriving (Show)
@@ -219,7 +219,6 @@ instance Binary Global where
 instance Binary Expr where
   put expr =
     case expr of
-      Bool a           -> putWord8  0 >> put a
       Chr a            -> putWord8  1 >> put a
       Str a            -> putWord8  2 >> put a
       Int a            -> putWord8  3 >> put a
@@ -246,7 +245,6 @@ instance Binary Expr where
   get =
     do  word <- getWord8
         case word of
-          0  -> liftM  Bool get
           1  -> liftM  Chr get
           2  -> liftM  Str get
           3  -> liftM  Int get

@@ -74,9 +74,7 @@ tupleGetters =
     "_Elm.GetTriple.el1 (*,(b,*)) = b",
     "_Elm.GetTriple.el2 (*,(*,c)) = c",
     -- unit
-    "data _Elm.Unit = Unit",
-    -- bool
-    "data _Elm.Bool = True | False"
+    "data _Elm.Unit = Unit"
   ]
 
 -- ADD DEPENDENCIES
@@ -175,10 +173,6 @@ exprToBuilder :: Opt.Expr -> B.Builder
 exprToBuilder expr =
   let f = exprToBuilder
    in case expr of
-        Opt.Bool b ->
-          case b of
-            True -> "(_Elm.Bool/True)"
-            False -> "(_Elm.Bool/False)"
         Opt.Chr str -> error "TODO exprToBuilder Chr"
         Opt.Str str ->
           "\"" <> Utf8.toBuilder str <> "\""

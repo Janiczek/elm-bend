@@ -32,7 +32,6 @@ import qualified Reporting.Warning as W
 type Result i w a =
   Result.Result i w E.Error a
 
-
 type Annotations =
   Map.Map Name.Name Can.Annotation
 

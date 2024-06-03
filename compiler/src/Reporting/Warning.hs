@@ -28,9 +28,11 @@ data Warning
   = UnusedImport A.Region Name.Name
   | UnusedVariable A.Region Context Name.Name
   | MissingTypeAnnotation A.Region Name.Name Can.Type
+  deriving (Show)
 
 
 data Context = Def | Pattern
+  deriving (Show)
 
 
 
