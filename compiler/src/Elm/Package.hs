@@ -46,7 +46,7 @@ import qualified Reporting.Suggest as Suggest
 
 
 
--- PACKGE NAMES
+-- PACKAGE NAMES
 
 
 data Name =
@@ -54,7 +54,10 @@ data Name =
     { _author :: !Author
     , _project :: !Project
     }
-    deriving (Ord, Show)
+    deriving (Ord)
+
+instance Show Name where
+  show (Name a p) = Utf8.toChars a ++ "." ++ Utf8.toChars p
 
 
 type Author = Utf8.Utf8 AUTHOR

@@ -67,8 +67,10 @@ data Expr
 
 
 data Global = Global ModuleName.Canonical Name
-  deriving (Show)
 
+instance Show Global where
+  show (Global home name) =
+    show home ++ "." ++ show name
 
 
 -- DEFINITIONS

@@ -129,7 +129,10 @@ data Canonical =
     { _package :: !Pkg.Name
     , _module :: !Name.Name
     }
-  deriving (Show)
+
+instance Show Canonical where
+  show (Canonical pkg name) =
+    show pkg ++ "." ++ show name
 
 
 
