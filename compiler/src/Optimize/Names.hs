@@ -5,7 +5,6 @@ module Optimize.Names
   ( Tracker
   , run
   , generate
-  , registerKernel
   , registerGlobal
   , registerDebugTodo
   , registerCtor
@@ -57,12 +56,6 @@ noop :: Tracker Opt.Main
 noop =
   Tracker $ \uid deps fields ok ->
     ok uid deps fields Opt.Static
-
-
-registerKernel :: Name.Name -> a -> Tracker a
-registerKernel home value =
-  Tracker $ \uid deps fields ok ->
-    ok uid (Set.insert (Opt.toKernelGlobal home) deps) fields value
 
 
 registerGlobal :: ModuleName.Canonical -> Name.Name -> Tracker Opt.Expr

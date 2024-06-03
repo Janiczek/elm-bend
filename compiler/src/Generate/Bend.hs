@@ -29,8 +29,7 @@ type Mains = Map.Map ModuleName.Canonical Opt.Main
 
 generate :: Opt.GlobalGraph -> Mains -> B.Builder
 generate (Opt.GlobalGraph graph _) mains =
-  let !_ = Debug.Trace.trace (show graph) ()
-      state = Map.foldrWithKey (addMain graph) emptyState mains
+  let state = Map.foldrWithKey (addMain graph) emptyState mains
    in stateToBuilder state
         <> "\n\n# wassup!"
 
@@ -92,6 +91,7 @@ addGlobal graph state@(State revBuilders seen) global =
 
 addGlobalHelp :: Graph -> Opt.Global -> State -> State
 addGlobalHelp graph global state =
+  let !_ = Debug.Trace.trace ("XXX0: (" ++ show global ++ ")") () in
   let addDeps deps someState =
         Set.foldl' (addGlobal graph) someState deps
    in case graph ! global of

@@ -55,7 +55,7 @@ optimize cycle (A.At _ expression) =
       Names.registerGlobal home name
 
     Can.Chr chr ->
-      Names.registerKernel Name.utils (Opt.Chr chr)
+      pure (Opt.Chr chr)
 
     Can.Str str ->
       pure (Opt.Str str)
@@ -67,8 +67,7 @@ optimize cycle (A.At _ expression) =
       pure (Opt.Float float)
 
     Can.List entries ->
-      Names.registerKernel Name.list Opt.List
-        <*> traverse (optimize cycle) entries
+      Opt.List <$> traverse (optimize cycle) entries
 
     Can.Negate expr ->
       do  func <- Names.registerGlobal ModuleName.basics Name.negate
@@ -157,11 +156,11 @@ optimize cycle (A.At _ expression) =
         <*> traverse (optimize cycle) fields
 
     Can.Unit ->
-      Names.registerKernel Name.utils Opt.Unit
+      pure Opt.Unit
 
     Can.Tuple a b maybeC ->
-      Names.registerKernel Name.utils Opt.Tuple
-        <*> optimize cycle a
+      Opt.Tuple
+        <$> optimize cycle a
         <*> optimize cycle b
         <*> traverse (optimize cycle) maybeC
 
