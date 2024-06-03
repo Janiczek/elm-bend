@@ -91,10 +91,12 @@ addGlobal graph state@(State revBuilders seen) global =
 
 addGlobalHelp :: Graph -> Opt.Global -> State -> State
 addGlobalHelp graph global state =
-  let !_ = Debug.Trace.trace ("XXX0: (" ++ show global ++ ")") () in
-  let addDeps deps someState =
+  let !_ = Debug.Trace.trace ("XXX0: (" ++ show global ++ ")") ()
+      addDeps deps someState =
         Set.foldl' (addGlobal graph) someState deps
-   in case graph ! global of
+      node = graph ! global
+      !_ = Debug.Trace.trace ("XXX1: node: (" ++ show node ++ ")") ()
+   in case node of
         Opt.Define expr deps ->
           let stateWithDeps = addDeps deps state
            in addValueDecl global expr stateWithDeps
@@ -106,7 +108,6 @@ addGlobalHelp graph global state =
           --   state
           --   ( var global (Expr.generateCtor global index arity)
           --   )
-          let !_ = Debug.Trace.trace ("XXX1: ctor" ++ show (index, arity)) () in
           error "TODO Opt.Ctor"
         Opt.Link linkedGlobal ->
           -- addGlobal graph state linkedGlobal
@@ -117,9 +118,6 @@ addGlobalHelp graph global state =
           --   ( generateCycle global names values functions
           --   )
           error "TODO Opt.Cycle"
-        Opt.Box ->
-          -- = newtype, most likely
-          error "TODO Opt.Box"
 
 addBuilder :: B.Builder -> State -> State
 addBuilder builder (State revBuilders seenGlobals) =

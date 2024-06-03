@@ -88,7 +88,6 @@ data Destructor =
 data Path
   = Index Index.ZeroBased Path
   | Field Name Path
-  | Unbox Path
   | Root Name
   deriving (Show)
 
@@ -152,7 +151,6 @@ data Node
   = Define Expr (Set.Set Global)
   | DefineTailFunc [Name] Expr (Set.Set Global)
   | Ctor Index.ZeroBased Int
-  | Box
   | Link Global
   | Cycle [Name] [(Name, Expr)] [Def] (Set.Set Global)
   deriving (Show)
@@ -296,7 +294,6 @@ instance Binary Path where
     case destructor of
       Index a b -> putWord8 0 >> put a >> put b
       Field a b -> putWord8 1 >> put a >> put b
-      Unbox a   -> putWord8 2 >> put a
       Root a    -> putWord8 3 >> put a
 
   get =
@@ -304,7 +301,6 @@ instance Binary Path where
         case word of
           0 -> liftM2 Index get get
           1 -> liftM2 Field get get
-          2 -> liftM  Unbox get
           3 -> liftM  Root get
           _ -> fail "problem getting Opt.Path binary"
 
@@ -370,7 +366,6 @@ instance Binary Node where
       Define a b           -> putWord8  0 >> put a >> put b
       DefineTailFunc a b c -> putWord8  1 >> put a >> put b >> put c
       Ctor a b             -> putWord8  2 >> put a >> put b
-      Box                  -> putWord8  4
       Link a               -> putWord8  5 >> put a
       Cycle a b c d        -> putWord8  6 >> put a >> put b >> put c >> put d
 
@@ -380,7 +375,6 @@ instance Binary Node where
           0  -> liftM2 Define get get
           1  -> liftM3 DefineTailFunc get get get
           2  -> liftM2 Ctor get get
-          4  -> return Box
           5  -> liftM  Link get
           6  -> liftM4 Cycle get get get get
           _  -> fail "problem getting Opt.Node binary"
