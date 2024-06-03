@@ -502,7 +502,7 @@ map2 : (a -> b -> result) -> List a -> List b -> List result
 map2 fn l1 l2 =
     case ( l1, l2 ) of
         ( x :: xs, y :: ys ) ->
-            fn x y :: map2 fn xs ys
+            cons (fn x y) (map2 fn xs ys)
 
         _ ->
             []
@@ -513,7 +513,7 @@ map3 : (a -> b -> c -> result) -> List a -> List b -> List c -> List result
 map3 fn l1 l2 l3 =
     case ( l1, l2, l3 ) of
         ( x :: xs, y :: ys, z :: zs ) ->
-            fn x y z :: map3 fn xs ys zs
+            cons (fn x y z) (map3 fn xs ys zs)
 
         _ ->
             []
@@ -522,9 +522,9 @@ map3 fn l1 l2 l3 =
 {-| -}
 map4 : (a -> b -> c -> d -> result) -> List a -> List b -> List c -> List d -> List result
 map4 fn l1 l2 l3 l4 =
-    case ( l1, l2, l3, l4 ) of
-        ( x :: xs, y :: ys, z :: zs, w :: ws ) ->
-            fn x y z w :: map4 fn xs ys zs ws
+    case ( l1, l2, ( l3, l4 ) ) of
+        ( x :: xs, y :: ys, ( z :: zs, w :: ws ) ) ->
+            cons (fn x y z w) (map4 fn xs ys zs ws)
 
         _ ->
             []
@@ -533,9 +533,9 @@ map4 fn l1 l2 l3 l4 =
 {-| -}
 map5 : (a -> b -> c -> d -> e -> result) -> List a -> List b -> List c -> List d -> List e -> List result
 map5 fn l1 l2 l3 l4 l5 =
-    case ( l1, l2, l3, l4, l5 ) of
-        ( x :: xs, y :: ys, z :: zs, w :: ws, v :: vs ) ->
-            fn x y z w v :: map5 fn xs ys zs ws vs
+    case ( l1, l2, ( l3, l4, l5 ) ) of
+        ( x :: xs, y :: ys, ( z :: zs, w :: ws, v :: vs ) ) ->
+            cons (fn x y z w v) (map5 fn xs ys zs ws vs)
 
         _ ->
             []

@@ -410,16 +410,14 @@ unsafeReplaceTail newTail (Array_elm_builtin len startShift tree tail) =
                 newArrayLen
                 newShift
                 newTree
-                Debug.todo
-                "JsArray.empty"
+                (Debug.todo "JsArray.empty")
 
         else
             Array_elm_builtin
                 newArrayLen
                 startShift
                 (insertTailInTree startShift len newTail tree)
-                Debug.todo
-                "JsArray.empty"
+                (Debug.todo "JsArray.empty")
 
     else
         Array_elm_builtin
@@ -916,7 +914,7 @@ sliceLeft from ((Array_elm_builtin len _ tree tail) as array) =
         array
 
     else if from >= tailIndex len then
-        Array_elm_builtin (len - from) shiftStep Debug.todo "JsArray.empty" <|
+        Array_elm_builtin (len - from) shiftStep (Debug.todo "JsArray.empty") <|
             Debug.todo "JsArray.slice (from - tailIndex len) (JsArray.length tail) tail"
 
     else
@@ -1011,8 +1009,7 @@ builderToArray reverseNodeList builder =
         Array_elm_builtin
             (Debug.todo "JsArray.length builder.tail")
             shiftStep
-            Debug.todo
-            "JsArray.empty"
+            (Debug.todo "JsArray.empty")
             builder.tail
 
     else
