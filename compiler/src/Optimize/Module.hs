@@ -55,7 +55,7 @@ addUnions home unions (Opt.LocalGraph main nodes fields adts) =
     main
     (Map.foldr (addUnionCtors home) nodes unions)
     fields
-    (Map.foldr addUnionADT adts unions)
+    (Map.foldrWithKey addUnionADT adts unions)
 
 addUnionCtors :: ModuleName.Canonical -> Can.Union -> Map.Map Opt.Global Opt.Node -> Map.Map Opt.Global Opt.Node
 addUnionCtors home (Can.Union _ ctors _) nodes =
@@ -66,10 +66,10 @@ addUnionCtor home nodes (Can.Ctor ctorName _ _ _) =
   Map.insert (Opt.Global home ctorName) Opt.Ctor nodes
 
 
-addUnionADT :: Can.Union -> [Opt.BendADT] -> [Opt.BendADT]
-addUnionADT (Can.Union _ ctors _) adts =
+addUnionADT :: Name.Name -> Can.Union -> [Opt.BendADT] -> [Opt.BendADT]
+addUnionADT name (Can.Union _ ctors _) adts =
   let toCtor (Can.Ctor ctorName _ ctorLength _) = (ctorName,ctorLength)
-      adt = Opt.BendADT (map toCtor ctors)
+      adt = Opt.BendADT name (map toCtor ctors)
   in
   adt : adts
 

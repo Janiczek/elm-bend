@@ -156,11 +156,10 @@ data Node
   deriving (Show)
 
 data BendADT
-  = BendADT [(Name,Int)]
+  = BendADT Name [(Name,Int)]
   -- type Maybe a = Just a | Nothing
   -- ->
-  -- data ADT1 = (Just a) | (Nothing)
-  -- (the ADT name doesn't matter)
+  -- data Maybe = (Just a) | (Nothing)
   deriving (Show)
 
 
@@ -381,5 +380,5 @@ instance Binary Node where
           _  -> fail "problem getting Opt.Node binary"
 
 instance Binary BendADT where
-  put (BendADT a) = put a
-  get = liftM BendADT get
+  put (BendADT a b) = put a >> put b
+  get = liftM2 BendADT get get

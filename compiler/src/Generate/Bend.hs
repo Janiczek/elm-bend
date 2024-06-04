@@ -36,19 +36,18 @@ generate (Opt.GlobalGraph graph _ adts) mains =
 
 addAdts :: [Opt.BendADT] -> State -> State
 addAdts adts state =
-  List.foldl' addAdt state (zip [0..] adts)
+  List.foldl' addAdt state adts
 
-addAdt :: State -> (Int,Opt.BendADT) -> State
-addAdt state (i,Opt.BendADT constructors) =
-  -- data Adt5 = (A) | (B arg1) | (C arg1 arg2)
-  let adtName = "Adt" <> B.stringUtf8 (show i)
-      constructorToBuilder (name, args) =
+addAdt :: State -> Opt.BendADT -> State
+addAdt state (Opt.BendADT adtName constructors) =
+  -- data Name = (A) | (B arg1) | (C arg1 arg2)
+  let constructorToBuilder (name, args) =
         let arg i = B.stringUtf8 $ "arg" <> show i in
         if args == 0
           then "(" <> Name.toBuilder name <> ")"
           else "(" <> Name.toBuilder name <> " " <> joinWith " " arg [1..args] <> ")"
       cs = joinWith " | " constructorToBuilder constructors
-      builder = "data " <> adtName <> " = " <> cs
+      builder = "data " <> Name.toBuilder adtName <> " = " <> cs
   in
   addBuilder builder state
 
