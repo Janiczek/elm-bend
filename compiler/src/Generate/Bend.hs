@@ -80,20 +80,17 @@ prependBuilders revBuilders monolith =
 
 initBuilders :: [B.Builder]
 initBuilders =
-  tupleGetters
-
-tupleGetters :: [B.Builder]
-tupleGetters =
   -- TODO munging rules ... //, / etc. instead of $
+  reverse
   [ -- tuples
-    "_Elm.GetTuple.el0 (a,*) = a",
-    "_Elm.GetTuple.el1 (*,b) = b",
-    -- triples
-    "_Elm.GetTriple.el0 (a,*)     = a",
-    "_Elm.GetTriple.el1 (*,(b,*)) = b",
-    "_Elm.GetTriple.el2 (*,(*,c)) = c",
-    -- unit
-    "data _Elm.Unit = Unit"
+      "_Elm.GetTuple.el0 (a,*) = a",
+      "_Elm.GetTuple.el1 (*,b) = b",
+      -- triples
+      "_Elm.GetTriple.el0 (a,*)     = a",
+      "_Elm.GetTriple.el1 (*,(b,*)) = b",
+      "_Elm.GetTriple.el2 (*,(*,c)) = c",
+      -- unit
+      "data _Elm.Unit = Unit"
   ]
 
 -- ADD DEPENDENCIES
