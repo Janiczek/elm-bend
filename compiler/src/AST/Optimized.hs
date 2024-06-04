@@ -69,7 +69,6 @@ instance Show Global where
   show (Global home name) =
     show home ++ "." ++ show name
 
-
 -- DEFINITIONS
 
 

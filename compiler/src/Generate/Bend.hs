@@ -30,7 +30,7 @@ type Mains = Map.Map ModuleName.Canonical Opt.Main
 generate :: Opt.GlobalGraph -> Mains -> B.Builder
 generate (Opt.GlobalGraph graph _ adts) mains =
   let stateWithAdts = addAdts adts emptyState
-      !_ = Debug.Trace.trace ("after ADTs: " ++ show stateWithAdts) ()
+      -- !_ = Debug.Trace.trace ("after ADTs: " ++ show stateWithAdts) ()
       finalState = Map.foldrWithKey (addMain graph) stateWithAdts mains
    in stateToBuilder finalState
 
@@ -105,11 +105,11 @@ addGlobal graph state@(State revBuilders seen) global =
 
 addGlobalHelp :: Graph -> Opt.Global -> State -> State
 addGlobalHelp graph global state =
-  let !_ = Debug.Trace.trace ("XXX2: from graph: " ++ show graph) ()
+  let -- !_ = Debug.Trace.trace ("XXX2: from graph: " ++ show graph) ()
       addDeps deps someState =
         Set.foldl' (addGlobal graph) someState deps
       node = graph ! Debug.Trace.traceShowId global
-      !_ = Debug.Trace.trace ("XXX1: node: " ++ show node) ()
+      -- !_ = Debug.Trace.trace ("XXX1: node: " ++ show node) ()
    in case node of
         Opt.Define expr deps ->
           let stateWithDeps = addDeps deps state
@@ -156,8 +156,13 @@ addFunctionDecl global argNames body state =
     state
 
 globalToBuilder :: Opt.Global -> B.Builder
-globalToBuilder (Opt.Global home name) =
-  homeToBuilder home <> "/" <> Name.toBuilder name
+globalToBuilder (Opt.Global home@(ModuleName.Canonical package module_) name) =
+  if package == Pkg.dummyName {- TODO && module_ == main -}
+  then Name.toBuilder name
+  else
+    homeToBuilder home 
+    <> delim
+    <> Name.toBuilder name
 
 argsToBuilder :: [Name] -> B.Builder
 argsToBuilder args =
@@ -170,12 +175,11 @@ joinWith delim fn (a : as) = fn a <> delim <> joinWith delim fn as
 
 delim :: B.Builder
 delim =
-  "//"
+  "/"
 
 homeToBuilder :: ModuleName.Canonical -> B.Builder
 homeToBuilder (ModuleName.Canonical (Pkg.Name author project) home) =
-  delim
-    <> Utf8.toBuilder author
+    Utf8.toBuilder author
     <> delim
     <> Utf8.toBuilder project
     <> delim
