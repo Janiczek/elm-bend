@@ -76,7 +76,7 @@ stateToBuilder (State revBuilders _) =
 
 prependBuilders :: [B.Builder] -> B.Builder -> B.Builder
 prependBuilders revBuilders monolith =
-  List.foldl' (\m b -> b <> m) monolith revBuilders
+  List.foldl' (\m b -> b <> "\n" <> m) monolith revBuilders
 
 initBuilders :: [B.Builder]
 initBuilders =
@@ -84,7 +84,6 @@ initBuilders =
 
 tupleGetters :: [B.Builder]
 tupleGetters =
-  -- TODO newlines?
   -- TODO munging rules ... //, / etc. instead of $
   [ -- tuples
     "_Elm.GetTuple.el0 (a,*) = a",
@@ -109,10 +108,10 @@ addGlobal graph state@(State revBuilders seen) global =
 
 addGlobalHelp :: Graph -> Opt.Global -> State -> State
 addGlobalHelp graph global state =
-  let !_ = Debug.Trace.trace ("XXX0: trying to get global: " ++ show global) ()
+  let !_ = Debug.Trace.trace ("XXX2: from graph: " ++ show graph) ()
       addDeps deps someState =
         Set.foldl' (addGlobal graph) someState deps
-      node = graph ! global
+      node = graph ! Debug.Trace.traceShowId global
       !_ = Debug.Trace.trace ("XXX1: node: " ++ show node) ()
    in case node of
         Opt.Define expr deps ->
@@ -121,6 +120,8 @@ addGlobalHelp graph global state =
         Opt.DefineTailFunc argNames body deps ->
           let stateWithDeps = addDeps deps state
            in addFunctionDecl global argNames body stateWithDeps
+        Opt.Ctor ->
+          state
         Opt.Link linkedGlobal ->
           -- addGlobal graph state linkedGlobal
           error "TODO Opt.Link"
@@ -195,7 +196,8 @@ exprToBuilder expr =
         Opt.Float f ->
           Float.toBuilder f
         Opt.VarLocal name -> error "TODO exprToBuilder VarLocal"
-        Opt.VarGlobal name -> error "TODO exprToBuilder VarGlobal"
+        Opt.VarGlobal (Opt.Global home name) ->
+          "(" <> homeToBuilder home <> "/" <> Name.toBuilder name <> ")"
         Opt.VarCycle moduleName name -> error "TODO exprToBuilder VarCycle"
         Opt.DebugTodo -> error "TODO exprToBuilder DebugTodo"
         Opt.List list ->

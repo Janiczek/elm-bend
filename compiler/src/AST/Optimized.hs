@@ -151,6 +151,7 @@ data Main
 data Node
   = Define Expr (Set.Set Global)
   | DefineTailFunc [Name] Expr (Set.Set Global)
+  | Ctor
   | Link Global
   | Cycle [Name] [(Name, Expr)] [Def] (Set.Set Global)
   deriving (Show)
@@ -366,6 +367,7 @@ instance Binary Node where
     case node of
       Define a b           -> putWord8  0 >> put a >> put b
       DefineTailFunc a b c -> putWord8  1 >> put a >> put b >> put c
+      Ctor                 -> putWord8  2
       Link a               -> putWord8  5 >> put a
       Cycle a b c d        -> putWord8  6 >> put a >> put b >> put c >> put d
 
@@ -374,6 +376,7 @@ instance Binary Node where
         case word of
           0  -> liftM2 Define get get
           1  -> liftM3 DefineTailFunc get get get
+          2  -> return Ctor
           5  -> liftM  Link get
           6  -> liftM4 Cycle get get get get
           _  -> fail "problem getting Opt.Node binary"

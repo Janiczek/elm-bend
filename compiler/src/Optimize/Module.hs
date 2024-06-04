@@ -9,6 +9,7 @@ module Optimize.Module
 
 import Prelude hiding (cycle)
 import Control.Monad (foldM)
+import qualified Data.List as List
 import qualified Data.Map as Map
 import qualified Data.Name as Name
 import qualified Data.Set as Set
@@ -39,7 +40,7 @@ type Annotations =
 optimize :: Annotations -> Can.Module -> Result i [W.Warning] Opt.LocalGraph
 optimize annotations (Can.Module home _ _ decls unions aliases _) =
   addDecls home annotations decls $
-    addUnions unions $
+    addUnions home unions $
       addAliases home aliases $
         Opt.LocalGraph Nothing Map.empty Map.empty []
 
@@ -48,13 +49,25 @@ optimize annotations (Can.Module home _ _ decls unions aliases _) =
 -- UNION
 
 
-addUnions :: Map.Map Name.Name Can.Union -> Opt.LocalGraph -> Opt.LocalGraph
-addUnions unions (Opt.LocalGraph main nodes fields adts) =
-  Opt.LocalGraph main nodes fields (Map.foldr addUnion adts unions)
+addUnions :: ModuleName.Canonical -> Map.Map Name.Name Can.Union -> Opt.LocalGraph -> Opt.LocalGraph
+addUnions home unions (Opt.LocalGraph main nodes fields adts) =
+  Opt.LocalGraph
+    main
+    (Map.foldr (addUnionCtors home) nodes unions)
+    fields
+    (Map.foldr addUnionADT adts unions)
+
+addUnionCtors :: ModuleName.Canonical -> Can.Union -> Map.Map Opt.Global Opt.Node -> Map.Map Opt.Global Opt.Node
+addUnionCtors home (Can.Union _ ctors _) nodes =
+  List.foldl' (addUnionCtor home) nodes ctors
+
+addUnionCtor :: ModuleName.Canonical -> Map.Map Opt.Global Opt.Node -> Can.Ctor -> Map.Map Opt.Global Opt.Node
+addUnionCtor home nodes (Can.Ctor ctorName _ _ _) =
+  Map.insert (Opt.Global home ctorName) Opt.Ctor nodes
 
 
-addUnion :: Can.Union -> [Opt.BendADT] -> [Opt.BendADT]
-addUnion (Can.Union _ ctors _) adts =
+addUnionADT :: Can.Union -> [Opt.BendADT] -> [Opt.BendADT]
+addUnionADT (Can.Union _ ctors _) adts =
   let toCtor (Can.Ctor ctorName _ ctorLength _) = (ctorName,ctorLength)
       adt = Opt.BendADT (map toCtor ctors)
   in
