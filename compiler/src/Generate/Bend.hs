@@ -29,31 +29,38 @@ type Mains = Map.Map ModuleName.Canonical Opt.Main
 
 generate :: Opt.GlobalGraph -> Mains -> B.Builder
 generate (Opt.GlobalGraph graph _ adts) mains =
-  let stateWithAdts = addAdts adts emptyState
-      -- !_ = Debug.Trace.trace ("after ADTs: " ++ show stateWithAdts) ()
+  let maybeMain =
+        case Map.keys mains of
+         [] -> Nothing
+         main : _ -> Just main
+      stateWithAdts = addAdts maybeMain adts emptyState
       finalState = Map.foldrWithKey (addMain graph) stateWithAdts mains
    in stateToBuilder finalState
 
-addAdts :: [Opt.BendADT] -> State -> State
-addAdts adts state =
-  List.foldl' addAdt state adts
+addAdts :: Maybe ModuleName.Canonical -> Map.Map Opt.Global Opt.BendADT -> State -> State
+addAdts maybeMain adts state =
+  Map.foldlWithKey (addAdt maybeMain) state adts
 
-addAdt :: State -> Opt.BendADT -> State
-addAdt state (Opt.BendADT adtName constructors) =
-  -- data Name = (A) | (B arg1) | (C arg1 arg2)
+addAdt :: Maybe ModuleName.Canonical -> State -> Opt.Global -> Opt.BendADT -> State
+addAdt maybeMain state name (Opt.BendADT constructors) =
+  -- type Name = (A) | (B arg1) | (C arg1 arg2)
   let constructorToBuilder (name, args) =
         let arg i = B.stringUtf8 $ "arg" <> show i in
         if args == 0
-          then "(" <> Name.toBuilder name <> ")"
+          then Name.toBuilder name
           else "(" <> Name.toBuilder name <> " " <> joinWith " " arg [1..args] <> ")"
       cs = joinWith " | " constructorToBuilder constructors
-      builder = "data " <> Name.toBuilder adtName <> " = " <> cs
+      builder =
+        "type " 
+        <> qualifiedNameToBuilder maybeMain name
+        <> " = " 
+        <> cs
   in
   addBuilder builder state
 
 addMain :: Graph -> ModuleName.Canonical -> Opt.Main -> State -> State
 addMain graph home _ state =
-  addGlobal graph state (Opt.Global home "main")
+  addGlobal (Just home) graph state (Opt.Global home "main")
 
 -- GRAPH TRAVERSAL STATE
 
@@ -81,41 +88,45 @@ initBuilders :: [B.Builder]
 initBuilders =
   -- TODO munging rules ... //, / etc. instead of $
   reverse
-  [ -- tuples
-      "_Elm.GetTuple.el0 (a,*) = a",
-      "_Elm.GetTuple.el1 (*,b) = b",
-      -- triples
-      "_Elm.GetTriple.el0 (a,*)     = a",
-      "_Elm.GetTriple.el1 (*,(b,*)) = b",
-      "_Elm.GetTriple.el2 (*,(*,c)) = c",
-      -- unit
-      "data _Elm.Unit = Unit"
+  [ "### Elm->Bend prelude",
+    -- tuples
+    "_Elm.GetTuple.el0 (a,*) = a",
+    "_Elm.GetTuple.el1 (*,b) = b",
+    -- triples
+    "_Elm.GetTriple.el0 (a,*)     = a",
+    "_Elm.GetTriple.el1 (*,(b,*)) = b",
+    "_Elm.GetTriple.el2 (*,(*,c)) = c",
+    -- unit
+    "type Basics/Unit = (Unit)",
+    "###",
+    ""
+
   ]
 
 -- ADD DEPENDENCIES
 
-addGlobal :: Graph -> State -> Opt.Global -> State
-addGlobal graph state@(State revBuilders seen) global =
+addGlobal :: Maybe ModuleName.Canonical -> Graph -> State -> Opt.Global -> State
+addGlobal maybeMain graph state@(State revBuilders seen) global =
   if Set.member global seen
     then state
     else
-      addGlobalHelp graph global $
+      addGlobalHelp maybeMain graph global $
         State revBuilders (Set.insert global seen)
 
-addGlobalHelp :: Graph -> Opt.Global -> State -> State
-addGlobalHelp graph global state =
+addGlobalHelp :: Maybe ModuleName.Canonical -> Graph -> Opt.Global -> State -> State
+addGlobalHelp maybeMain graph global state =
   let -- !_ = Debug.Trace.trace ("XXX2: from graph: " ++ show graph) ()
       addDeps deps someState =
-        Set.foldl' (addGlobal graph) someState deps
+        Set.foldl' (addGlobal maybeMain graph) someState deps
       node = graph ! Debug.Trace.traceShowId global
       -- !_ = Debug.Trace.trace ("XXX1: node: " ++ show node) ()
    in case node of
         Opt.Define expr deps ->
           let stateWithDeps = addDeps deps state
-           in addValueDecl global expr stateWithDeps
+           in addValueDecl maybeMain global expr stateWithDeps
         Opt.DefineTailFunc argNames body deps ->
           let stateWithDeps = addDeps deps state
-           in addFunctionDecl global argNames body stateWithDeps
+           in addFunctionDecl maybeMain global argNames body stateWithDeps
         Opt.Ctor ->
           state
         Opt.Link linkedGlobal ->
@@ -133,35 +144,37 @@ addBuilder builder (State revBuilders seenGlobals) =
   State (builder : revBuilders) seenGlobals
 
 -- foo = (...)
-addValueDecl :: Opt.Global -> Opt.Expr -> State -> State
-addValueDecl global expr state =
+addValueDecl :: Maybe ModuleName.Canonical -> Opt.Global -> Opt.Expr -> State -> State
+addValueDecl maybeMain name expr state =
   addBuilder
-    ( globalToBuilder global
+    ( qualifiedNameToBuilder maybeMain name
         <> " = "
-        <> exprToBuilder expr
+        <> exprToBuilder maybeMain expr
     )
     state
 
 -- foo x y = (...)
-addFunctionDecl :: Opt.Global -> [Name] -> Opt.Expr -> State -> State
-addFunctionDecl global argNames body state =
+addFunctionDecl :: Maybe ModuleName.Canonical -> Opt.Global -> [Name] -> Opt.Expr -> State -> State
+addFunctionDecl maybeMain name argNames body state =
   addBuilder
-    ( globalToBuilder global
+    ( qualifiedNameToBuilder maybeMain name
         <> " "
         <> argsToBuilder argNames
         <> " = "
-        <> exprToBuilder body
+        <> exprToBuilder maybeMain body
     )
     state
 
-globalToBuilder :: Opt.Global -> B.Builder
-globalToBuilder (Opt.Global home@(ModuleName.Canonical package module_) name) =
-  if package == Pkg.dummyName {- TODO && module_ == main -}
-  then Name.toBuilder name
-  else
-    homeToBuilder home 
-    <> delim
-    <> Name.toBuilder name
+-- if main module, don't qualify
+qualifiedNameToBuilder :: Maybe ModuleName.Canonical -> Opt.Global -> B.Builder
+qualifiedNameToBuilder maybeMain (Opt.Global home@(ModuleName.Canonical _ module_) name) =
+  case maybeMain of
+    Nothing -> qualified
+    Just main ->
+      if home == main
+      then Name.toBuilder name
+      else qualified
+  where qualified = Name.toBuilder module_ <> delim <> Name.toBuilder name
 
 argsToBuilder :: [Name] -> B.Builder
 argsToBuilder args =
@@ -176,17 +189,9 @@ delim :: B.Builder
 delim =
   "/"
 
-homeToBuilder :: ModuleName.Canonical -> B.Builder
-homeToBuilder (ModuleName.Canonical (Pkg.Name author project) home) =
-    Utf8.toBuilder author
-    <> delim
-    <> Utf8.toBuilder project
-    <> delim
-    <> Utf8.toBuilder home
-
-exprToBuilder :: Opt.Expr -> B.Builder
-exprToBuilder expr =
-  let f = exprToBuilder
+exprToBuilder :: Maybe ModuleName.Canonical -> Opt.Expr -> B.Builder
+exprToBuilder maybeMain expr =
+  let f = exprToBuilder maybeMain
    in case expr of
         Opt.Chr str -> error "TODO exprToBuilder Chr"
         Opt.Str str ->
@@ -196,8 +201,34 @@ exprToBuilder expr =
         Opt.Float f ->
           Float.toBuilder f
         Opt.VarLocal name -> error "TODO exprToBuilder VarLocal"
-        Opt.VarGlobal (Opt.Global home name) ->
-          "(" <> homeToBuilder home <> "/" <> Name.toBuilder name <> ")"
+        Opt.VarGlobal name ->
+          -- (Basics/foo) (if in non-Main module)
+          -- (foo)        (if in Main module)
+          "(" <> qualifiedNameToBuilder maybeMain name <> ")"
+        Opt.VarCtor adtName global@(Opt.Global home@(ModuleName.Canonical _ module_) ctorName) -> 
+          -- Basics/Bool/True (if in non-Main module)
+          -- MyType/MyCtor    (if in Main module)
+          case maybeMain of
+            Nothing -> qualified
+            Just main ->
+              if home == main
+              then unqualified
+              else qualified
+          where
+            qualified =
+              "("
+              <> Name.toBuilder module_ 
+              <> delim
+              <> Name.toBuilder adtName
+              <> delim
+              <> Name.toBuilder ctorName
+              <> ")"
+            unqualified =
+              "("
+              <> Name.toBuilder adtName
+              <> delim
+              <> Name.toBuilder ctorName
+              <> ")"
         Opt.VarCycle moduleName name -> error "TODO exprToBuilder VarCycle"
         Opt.DebugTodo -> error "TODO exprToBuilder DebugTodo"
         Opt.List list ->
@@ -214,7 +245,7 @@ exprToBuilder expr =
         Opt.Update expr_ fields -> error "TODO exprToBuilder Update"
         Opt.Record fields -> error "TODO exprToBuilder Record"
         Opt.Unit ->
-          "(_Elm.Unit/Unit)"
+          "(Basics/Unit/Unit)"
         Opt.Tuple t1 t2 mt3 ->
           case mt3 of
             Nothing ->

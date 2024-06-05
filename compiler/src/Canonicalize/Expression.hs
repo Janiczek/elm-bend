@@ -733,7 +733,7 @@ toPossibleNames exposed qualified =
 
 
 toVarCtor :: Name.Name -> Env.Ctor -> Can.Expr_
-toVarCtor name ctor =
+toVarCtor ctorName ctor =
   case ctor of
     Env.Ctor home typeName (Can.Union vars _ _) index args ->
       let
@@ -741,10 +741,10 @@ toVarCtor name ctor =
         result = Can.TType home typeName (map Can.TVar vars)
         tipe = foldr Can.TLambda result args
       in
-      Can.VarCtor home name index (Can.Forall freeVars tipe)
+      Can.VarCtor typeName home ctorName index (Can.Forall freeVars tipe)
 
     Env.RecordCtor home vars tipe ->
       let
         freeVars = Map.fromList (map (\v -> (v, ())) vars)
       in
-      Can.VarCtor home name Index.first (Can.Forall freeVars tipe)
+      Can.VarCtor (error ("TODO what is this: " ++ show ctor)) home ctorName Index.first (Can.Forall freeVars tipe)

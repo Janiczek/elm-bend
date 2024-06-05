@@ -134,8 +134,6 @@ instance Show Canonical where
   show (Canonical pkg name) =
     show pkg ++ "." ++ show name
 
-
-
 -- INSTANCES
 
 

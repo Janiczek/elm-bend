@@ -48,8 +48,8 @@ constrain rtv (A.At region expression) expected =
     Can.VarForeign _ name annotation ->
       return $ CForeign region name annotation expected
 
-    Can.VarCtor _ name _ annotation ->
-      return $ CForeign region name annotation expected
+    Can.VarCtor _ _ ctorName _ annotation ->
+      return $ CForeign region ctorName annotation expected
 
     Can.DebugTodo ->
       return CTrue
@@ -211,12 +211,12 @@ constrainArg rtv region maybeName index arg =
 getName :: Can.Expr -> MaybeName
 getName (A.At _ expr) =
   case expr of
-    Can.VarLocal name        -> FuncName name
-    Can.VarTopLevel _ name   -> FuncName name
-    Can.VarForeign _ name _  -> FuncName name
-    Can.VarCtor _ name _ _   -> CtorName name
-    Can.VarOperator op _ _ _ -> OpName op
-    _                        -> NoName
+    Can.VarLocal name            -> FuncName name
+    Can.VarTopLevel _ name       -> FuncName name
+    Can.VarForeign _ name _      -> FuncName name
+    Can.VarCtor _ _ ctorName _ _ -> CtorName ctorName
+    Can.VarOperator op _ _ _     -> OpName op
+    _                            -> NoName
 
 
 getAccessName :: Can.Expr -> Maybe Name.Name

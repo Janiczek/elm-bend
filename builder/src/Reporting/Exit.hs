@@ -1050,7 +1050,7 @@ data Make
   | MakePkgNeedsExposing
   | MakeMultipleFilesIntoHtml
   | MakeNoMain
-  | MakeNonMainFilesIntoBend ModuleName.Raw [ModuleName.Raw]
+  | MakeNonMainFileIntoBend ModuleName.Raw
   | MakeCannotBuild BuildProblem
   | MakeBadGenerate Generate
 
@@ -1150,42 +1150,14 @@ makeToReport make =
             \ the `main` value."
         ]
 
-    MakeNonMainFilesIntoBend m ms ->
-      case ms of
-        [] ->
-          Help.report "NO MAIN" Nothing
-            "When producing a Bend file, I require that the given file has a `main` value."
-            [ D.reflow $
-                "Try adding a `main` value to your file? Or if you just want to verify that this\
-                \ module compiles, switch to --output=/dev/null to skip the code gen phase\
-                \ altogether."
-            ]
-
-        _:_ ->
-          -- TODO this warning doesn't make sense for Bend.
-          Help.report "NO MAIN" Nothing
-            (
-              "When producing a Bend file, I require that given files all have `main` values.\
-              \ That way functions like Elm." ++ ModuleName.toChars m ++ ".init() are\
-              \ definitely defined in the resulting file. I am missing `main` values in:"
-            )
-            [ D.indent 4 $ D.red $ D.vcat $ map D.fromName (m:ms)
-            , D.reflow $
-                "Try adding a `main` value to them? Or if you just want to verify that these\
-                \ modules compile, switch to --output=/dev/null to skip the code gen phase\
-                \ altogether."
-            , D.toSimpleNote $
-                "Adding a `main` value can be as brief as adding something like this:"
-            , D.vcat
-                [ D.fillSep [D.cyan "import","Html"]
-                , ""
-                , D.fillSep [D.green "main","="]
-                , D.indent 2 $ D.fillSep [D.cyan "Html" <> ".text",D.dullyellow "\"Hello!\""]
-                ]
-            , D.reflow $
-                "Or use https://package.elm-lang.org/packages/elm/core/latest/Platform#worker to\
-                \ make a `main` with no user interface."
-            ]
+    MakeNonMainFileIntoBend m ->
+      Help.report "NO MAIN" Nothing
+        "When producing a Bend file, I require that the given file has a `main` value."
+        [ D.reflow $
+            "Try adding a `main` value to your file? Or if you just want to verify that this\
+            \ module compiles, switch to --output=/dev/null to skip the code gen phase\
+            \ altogether."
+        ]
 
     MakeCannotBuild buildProblem ->
       toBuildProblemReport buildProblem

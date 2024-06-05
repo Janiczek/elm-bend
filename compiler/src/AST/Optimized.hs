@@ -44,6 +44,7 @@ data Expr
   | Float EF.Float
   | VarLocal Name
   | VarGlobal Global
+  | VarCtor Name Global -- adtName
   | VarCycle ModuleName.Canonical Name
   | DebugTodo
   | List [Expr]
@@ -123,7 +124,7 @@ data GlobalGraph =
   GlobalGraph
     { _g_nodes :: Map.Map Global Node
     , _g_fields :: Map.Map Name Int
-    , _g_adts :: [BendADT]
+    , _g_adts :: Map.Map Global BendADT
     }
   deriving (Show)
 
@@ -133,7 +134,7 @@ data LocalGraph =
     { _l_main :: Maybe Main
     , _l_nodes :: Map.Map Global Node  -- PERF profile switching Global to Name
     , _l_fields :: Map.Map Name Int
-    , _l_adts :: [BendADT]
+    , _l_adts :: Map.Map Global BendADT
     }
   deriving (Show)
 
@@ -156,7 +157,7 @@ data Node
   deriving (Show)
 
 data BendADT
-  = BendADT Name [(Name,Int)]
+  = BendADT [(Name,Int)]
   -- type Maybe a = Just a | Nothing
   -- ->
   -- data Maybe = (Just a) | (Nothing)
@@ -169,7 +170,7 @@ data BendADT
 {-# NOINLINE empty #-}
 empty :: GlobalGraph
 empty =
-  GlobalGraph Map.empty Map.empty []
+  GlobalGraph Map.empty Map.empty Map.empty
 
 
 addGlobalGraph :: GlobalGraph -> GlobalGraph -> GlobalGraph
@@ -177,7 +178,7 @@ addGlobalGraph (GlobalGraph nodes1 fields1 adts1) (GlobalGraph nodes2 fields2 ad
   GlobalGraph
     { _g_nodes = Map.union nodes1 nodes2
     , _g_fields = Map.union fields1 fields2
-    , _g_adts = adts1 ++ adts2
+    , _g_adts = Map.union adts1 adts2
     }
 
 
@@ -186,7 +187,7 @@ addLocalGraph (LocalGraph _ nodes1 fields1 adts1) (GlobalGraph nodes2 fields2 ad
   GlobalGraph
     { _g_nodes = Map.union nodes1 nodes2
     , _g_fields = Map.union fields1 fields2
-    , _g_adts = adts1 ++ adts2
+    , _g_adts = Map.union adts1 adts2
     }
 
 
@@ -225,6 +226,7 @@ instance Binary Expr where
       Float a          -> putWord8  4 >> put a
       VarLocal a       -> putWord8  5 >> put a
       VarGlobal a      -> putWord8  6 >> put a
+      VarCtor a b      -> putWord8  7 >> put a >> put b
       VarCycle a b     -> putWord8  9 >> put a >> put b
       DebugTodo        -> putWord8 10
       List a           -> putWord8 12 >> put a
@@ -251,6 +253,7 @@ instance Binary Expr where
           4  -> liftM  Float get
           5  -> liftM  VarLocal get
           6  -> liftM  VarGlobal get
+          7  -> liftM2 VarCtor get get
           9  -> liftM2 VarCycle get get
           10 -> pure   DebugTodo
           12 -> liftM  List get
@@ -380,5 +383,5 @@ instance Binary Node where
           _  -> fail "problem getting Opt.Node binary"
 
 instance Binary BendADT where
-  put (BendADT a b) = put a >> put b
-  get = liftM2 BendADT get get
+  put (BendADT a) = put a
+  get = liftM BendADT get

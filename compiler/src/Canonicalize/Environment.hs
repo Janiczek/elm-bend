@@ -123,6 +123,7 @@ data Ctor
       , _c_index :: Index.ZeroBased
       , _c_args :: [Can.Type]
       }
+    deriving (Show)
 
 
 

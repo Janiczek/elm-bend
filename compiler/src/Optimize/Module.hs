@@ -14,6 +14,7 @@ import qualified Data.Map as Map
 import qualified Data.Name as Name
 import qualified Data.Set as Set
 import Data.Map ((!))
+import qualified Debug.Trace
 
 import qualified AST.Canonical as Can
 import qualified AST.Optimized as Opt
@@ -42,7 +43,7 @@ optimize annotations (Can.Module home _ _ decls unions aliases _) =
   addDecls home annotations decls $
     addUnions home unions $
       addAliases home aliases $
-        Opt.LocalGraph Nothing Map.empty Map.empty []
+        Opt.LocalGraph Nothing Map.empty Map.empty Map.empty
 
 
 
@@ -55,23 +56,26 @@ addUnions home unions (Opt.LocalGraph main nodes fields adts) =
     main
     (Map.foldr (addUnionCtors home) nodes unions)
     fields
-    (Map.foldrWithKey addUnionADT adts unions)
+    (Map.foldrWithKey (addUnionADT home) adts unions)
 
 addUnionCtors :: ModuleName.Canonical -> Can.Union -> Map.Map Opt.Global Opt.Node -> Map.Map Opt.Global Opt.Node
 addUnionCtors home (Can.Union _ ctors _) nodes =
   List.foldl' (addUnionCtor home) nodes ctors
 
 addUnionCtor :: ModuleName.Canonical -> Map.Map Opt.Global Opt.Node -> Can.Ctor -> Map.Map Opt.Global Opt.Node
-addUnionCtor home nodes (Can.Ctor ctorName _ _ _) =
+addUnionCtor home nodes ctor@(Can.Ctor ctorName _ _ _) =
+  let !_ = Debug.Trace.trace ("adding union ctor: " ++ show ctor) () in
   Map.insert (Opt.Global home ctorName) Opt.Ctor nodes
 
 
-addUnionADT :: Name.Name -> Can.Union -> [Opt.BendADT] -> [Opt.BendADT]
-addUnionADT name (Can.Union _ ctors _) adts =
+addUnionADT :: ModuleName.Canonical -> Name.Name -> Can.Union -> Map.Map Opt.Global Opt.BendADT -> Map.Map Opt.Global Opt.BendADT
+addUnionADT home adtName union@(Can.Union _ ctors _) adts =
+  let !_ = Debug.Trace.trace ("adding union adt: " ++ show union) () in
   let toCtor (Can.Ctor ctorName _ ctorLength _) = (ctorName,ctorLength)
-      adt = Opt.BendADT name (map toCtor ctors)
+      global = Opt.Global home adtName
+      adt = Opt.BendADT (map toCtor ctors)
   in
-  adt : adts
+  Map.insert global adt adts
 
 
 

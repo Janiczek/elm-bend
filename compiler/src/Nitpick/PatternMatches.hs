@@ -273,7 +273,7 @@ checkExpr (A.At region expression) errors =
     Can.VarForeign _ _ _ ->
       errors
 
-    Can.VarCtor _ _ _ _ ->
+    Can.VarCtor _ _ _ _ _ ->
       errors
 
     Can.VarOperator _ _ _ _ ->

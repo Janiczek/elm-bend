@@ -70,14 +70,14 @@ registerDebugTodo =
     ok uid (Set.insert global deps) fields Opt.DebugTodo
 
 
-registerCtor :: ModuleName.Canonical -> Name.Name -> Tracker Opt.Expr
-registerCtor home name =
+registerCtor :: Name.Name -> ModuleName.Canonical -> Name.Name -> Tracker Opt.Expr
+registerCtor adtName home ctorName =
   Tracker $ \uid deps fields ok ->
     let
-      global = Opt.Global home name
+      global = Opt.Global home ctorName
       newDeps = Set.insert global deps
     in
-    ok uid newDeps fields (Opt.VarGlobal global)
+    ok uid newDeps fields (Opt.VarCtor adtName global)
 
 
 registerField :: Name.Name -> a -> Tracker a

@@ -75,7 +75,7 @@ data Expr_
   = VarLocal Name
   | VarTopLevel ModuleName.Canonical Name
   | VarForeign ModuleName.Canonical Name Annotation
-  | VarCtor ModuleName.Canonical Name Index.ZeroBased Annotation
+  | VarCtor Name ModuleName.Canonical Name Index.ZeroBased Annotation
   | VarOperator Name ModuleName.Canonical Name Annotation -- CACHE real name for optimization
   | DebugTodo
   | Chr ES.String

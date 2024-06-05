@@ -45,8 +45,8 @@ optimize cycle (A.At _ expression) =
     Can.VarForeign home name _ ->
       Names.registerGlobal home name
 
-    Can.VarCtor home name _ _ ->
-      Names.registerCtor home name
+    Can.VarCtor adtName home ctorName _ _ ->
+      Names.registerCtor adtName home ctorName
 
     Can.DebugTodo ->
       Names.registerDebugTodo

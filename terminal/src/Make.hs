@@ -59,28 +59,30 @@ data ReportType
 type Task a = Task.Task Exit.Make a
 
 
-run :: [FilePath] -> Flags -> IO ()
-run paths flags@(Flags _ report) =
+run :: Maybe FilePath -> Flags -> IO ()
+run maybePath flags@(Flags _ report) =
   do  style <- getStyle report
       maybeRoot <- Stuff.findRoot
       Reporting.attemptWithStyle style Exit.makeToReport $
         case maybeRoot of
-          Just root -> runHelp root paths style flags
+          Just root -> runHelp root maybePath style flags
           Nothing   -> return $ Left $ Exit.MakeNoOutline
 
 
-runHelp :: FilePath -> [FilePath] -> Reporting.Style -> Flags -> IO (Either Exit.Make ())
-runHelp root paths style (Flags maybeOutput _) =
+runHelp :: FilePath -> Maybe FilePath -> Reporting.Style -> Flags -> IO (Either Exit.Make ())
+runHelp root maybePath style (Flags maybeOutput _) =
   BW.withScope $ \scope ->
   Stuff.withRootLock root $ Task.run $
   do  details <- Task.eio Exit.MakeBadDetails (Details.load style scope root)
-      case paths of
-        [] ->
+      case maybePath of
+        Nothing ->
           do  exposed <- getExposed details
               buildExposed style root details exposed
 
-        p:ps ->
-          do  artifacts <- buildPaths style root details (NE.List p ps)
+        Just p ->
+        -- TODO we can refactor this since Elm->Bend only supports a single main at a time;
+        -- thus the NE.List here will always only contain exactly one item.
+          do  artifacts <- buildPaths style root details (NE.List p [])
               case maybeOutput of
                 Nothing ->
                   case getMains artifacts of
@@ -91,9 +93,8 @@ runHelp root paths style (Flags maybeOutput _) =
                       do  builder <- toBuilder root details artifacts
                           generate style "out.bend" builder (NE.List name [])
 
-                    name:names ->
-                      do  builder <- toBuilder root details artifacts
-                          generate style "out.bend" builder (NE.List name names)
+                    _ ->
+                      error "Elm->Bend: invariant violation: more than one main"
 
                 Just DevNull ->
                   return ()
@@ -104,8 +105,11 @@ runHelp root paths style (Flags maybeOutput _) =
                       do  builder <- toBuilder root details artifacts
                           generate style target builder (Build.getRootNames artifacts)
 
-                    name:names ->
-                      Task.throw (Exit.MakeNonMainFilesIntoBend name names)
+                    [name] ->
+                      Task.throw (Exit.MakeNonMainFileIntoBend name)
+
+                    _ ->
+                      error "Elm->Bend: invariant violation: more than one main"
 
 
 
