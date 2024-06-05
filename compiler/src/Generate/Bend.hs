@@ -97,7 +97,7 @@ initBuilders =
     "_Elm.GetTriple.el1 (*,(b,*)) = b",
     "_Elm.GetTriple.el2 (*,(*,c)) = c",
     -- unit
-    "type Basics/Unit = (Unit)",
+    "type Basics/Unit = Unit",
     "###",
     ""
 
