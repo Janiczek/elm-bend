@@ -113,8 +113,8 @@ use single quotes for a [`Char`](Char#Char).
 
 -}
 type String
-    = EmptyString
-    | ConsString Char String
+    = Nil
+    | Cons Char String
 
 
 {-| Determine if a string is empty.
@@ -126,7 +126,12 @@ type String
 -}
 isEmpty : String -> Bool
 isEmpty string =
-    string == ""
+    case string of
+        Nil ->
+            True
+
+        _ ->
+            False
 
 
 {-| Get the length of a string.
@@ -138,12 +143,17 @@ isEmpty string =
 -}
 length : String -> Int
 length string =
-    case string of
-        EmptyString ->
-            0
+    let
+        go : Int -> String -> Int
+        go acc s =
+            case s of
+                Nil ->
+                    acc
 
-        ConsString _ rest ->
-            1 + length rest
+                Cons _ xs ->
+                    go (acc + 1) xs
+    in
+    go 0 string
 
 
 {-| Reverse a string.
@@ -153,12 +163,13 @@ length string =
 -}
 reverse : String -> String
 reverse string =
+    -- TODO is this O(n^2)?
     case string of
-        EmptyString ->
+        Nil ->
             ""
 
-        ConsString char rest ->
-            reverse rest ++ fromChar char
+        Cons x xs ->
+            reverse xs ++ fromChar x
 
 
 {-| Repeat a string _n_ times.
@@ -216,11 +227,11 @@ to do this.
 append : String -> String -> String
 append s1 s2 =
     case s1 of
-        EmptyString ->
+        Nil ->
             s2
 
-        ConsString char rest ->
-            ConsString char (append rest s2)
+        Cons x xs ->
+            ConsString x (append xs s2)
 
 
 {-| Concatenate many strings into one.
@@ -256,7 +267,15 @@ split sep string =
 -}
 join : String -> List String -> String
 join sep chunks =
-    Debug.todo "String.join"
+    case List.reverse chunks of
+        [] ->
+            ""
+
+        [ chunk ] ->
+            chunk
+
+        chunk :: rest ->
+            List.foldr (\newChunk acc -> newChunk ++ sep ++ acc) chunk rest
 
 
 {-| Break a string into words, splitting on chunks of whitespace.
@@ -275,8 +294,9 @@ words =
 
 -}
 lines : String -> List String
-lines =
-    Debug.todo "String.lines"
+lines string =
+    -- TODO what about \r and \r\n?
+    split "\n" string
 
 
 
@@ -296,8 +316,35 @@ are taken starting from the _end_ of the list.
 
 -}
 slice : Int -> Int -> String -> String
-slice =
-    Debug.todo "String.slice"
+slice from to string =
+    let
+        needsToCalculateLength =
+            from < 0 || to < 0
+
+        length =
+            if needsToCalculateLength then
+                length string
+
+            else
+                0
+
+        from_ =
+            if from < 0 then
+                length + from
+
+            else
+                from
+
+        to_ =
+            if to < 0 then
+                length + to
+
+            else
+                to
+    in
+    string
+        |> dropLeft from_
+        |> left (to_ - from_)
 
 
 {-| Take _n_ characters from the left side of a string.
@@ -311,7 +358,21 @@ left n string =
         ""
 
     else
-        slice 0 n string
+        let
+            go : String -> Int -> String -> String
+            go revAcc nn s =
+                case ( nn, s ) of
+                    ( 0, _ ) ->
+                        acc
+
+                    ( _, Nil ) ->
+                        acc
+
+                    ( _, Cons x xs ) ->
+                        go (Cons x revAcc) (nn - 1) xs
+        in
+        go "" n string
+            |> reverse
 
 
 {-| Take _n_ characters from the right side of a string.
@@ -339,7 +400,20 @@ dropLeft n string =
         string
 
     else
-        slice n (length string) string
+        let
+            go : String -> Int -> String -> String
+            go nn s =
+                case ( nn, s ) of
+                    ( 0, _ ) ->
+                        s
+
+                    ( _, Nil ) ->
+                        s
+
+                    ( _, Cons x xs ) ->
+                        go (nn - 1) xs
+        in
+        go n string
 
 
 {-| Drop _n_ characters from the right side of a string.
@@ -694,11 +768,11 @@ uncons =
 map : (Char -> Char) -> String -> String
 map fn s =
     case s of
-        EmptyString ->
+        Nil ->
             ""
 
-        ConsString char rest ->
-            ConsString (fn char) (map fn rest)
+        Cons x xs ->
+            ConsString (fn x) (map fn xs)
 
 
 {-| Keep only the characters that pass the test.
