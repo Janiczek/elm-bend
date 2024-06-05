@@ -37,7 +37,7 @@ import qualified Elm.Version as V
 
 stuff :: FilePath -> FilePath
 stuff root =
-  root </> "elm-stuff" </> compilerVersion
+  root </> "elm-bend-stuff" </> compilerVersion
 
 
 details :: FilePath -> FilePath

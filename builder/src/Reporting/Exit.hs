@@ -1432,11 +1432,11 @@ toGenerateReport problem =
 corruptCacheReport :: Help.Report
 corruptCacheReport =
   Help.report "CORRUPT CACHE" Nothing
-    "It looks like some of the information cached in elm-stuff/ has been corrupted."
+    "It looks like some of the information cached in elm-bend-stuff/ has been corrupted."
     [ D.reflow $
-        "Try deleting your elm-stuff/ directory to get unstuck."
+        "Try deleting your elm-bend-stuff/ directory to get unstuck."
     , D.toSimpleNote $
         "This almost certainly means that a 3rd party tool (or editor plugin) is\
-        \ causing problems your the elm-stuff/ directory. Try disabling 3rd party tools\
+        \ causing problems your the elm-bend-stuff/ directory. Try disabling 3rd party tools\
         \ one by one until you figure out which it is!"
     ]

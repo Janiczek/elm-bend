@@ -89,5 +89,5 @@ sudo rm /usr/local/bin/elm
 rm -r ~/.elm/
 ```
 
-If you have any Elm projects still on your computer, you can remove their `elm-stuff/` directories as well.
+If you have any Elm projects still on your computer, you can remove their `elm-bend-stuff/` directories as well.
 
