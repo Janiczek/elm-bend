@@ -1,11 +1,11 @@
-module Elm.LangItem (LangItem(..), name, parse) where
+module Elm.Intrinsic (Intrinsic(..), name, parse) where
 
 import Data.Binary (Binary, get, put, getWord8, putWord8)
 
 import qualified Data.Map as Map
 import qualified Data.Name as Name
 
-data LangItem
+data Intrinsic
   = Add
   | Sub
   | Mul
@@ -14,7 +14,7 @@ data LangItem
   | Pow
   deriving (Show, Bounded, Enum)
 
-instance Binary LangItem where
+instance Binary Intrinsic where
   put item =
     case item of
       Add  -> putWord8 0
@@ -32,12 +32,12 @@ instance Binary LangItem where
       3 -> return Fdiv
       4 -> return Idiv
       5 -> return Pow
-      _ -> fail "problem getting LangItem binary"
+      _ -> fail "problem getting Intrinsic binary"
 
-name :: LangItem -> Name.Name
-name langItem =
+name :: Intrinsic -> Name.Name
+name intrinsic =
   Name.fromChars $ 
-    case langItem of
+    case intrinsic of
       Add -> "add"
       Sub -> "sub"
       Mul -> "mul"
@@ -45,12 +45,12 @@ name langItem =
       Idiv -> "idiv"
       Pow -> "pow"
 
-mapping :: Map.Map Name.Name LangItem
+mapping :: Map.Map Name.Name Intrinsic
 mapping =
-  let all = enumFrom (minBound :: LangItem)
+  let all = enumFrom (minBound :: Intrinsic)
   in
   Map.fromList (map (\item -> (name item, item)) all)
   
-parse :: Name.Name -> Maybe LangItem
+parse :: Name.Name -> Maybe Intrinsic
 parse name =
   Map.lookup name mapping

@@ -7,87 +7,76 @@ packages:
 - completed:
     hackage: timeout-0.1.1@sha256:56c1d3321d7139d1f7ebf04d46c95d3a3f1c8c9e0f15666ae3ccd6bae6204b6e,1427
     pantry-tree:
-      size: 437
       sha256: e571503d7e609c3fe496de7e858613360bfa6c06e20ac57d9659bd32d0645889
+      size: 437
   original:
     hackage: timeout-0.1.1
 - completed:
     hackage: command-0.1.1@sha256:5232b98c195bc3b8a6f35c55ccd2fa424abe355ca54cfcd836bbe7e494834773,1110
     pantry-tree:
-      size: 167
       sha256: 1ecfeb4b1367de6b489dbda20be05df78beb07f71d7c0b1f471fab1cd9c8044a
+      size: 167
   original:
     hackage: command-0.1.1
 - completed:
     hackage: snap-server-1.1.2.1@sha256:01eaf773af9594067c96b3144c84f1f97f0d5fb6520e5d48382572d2607b010a,15466
     pantry-tree:
-      size: 3313
       sha256: 055824026887998f21c58c0da9bacbde035f2d310ef8004cb86c2fc57ca035ee
+      size: 3313
   original:
     hackage: snap-server-1.1.2.1
 - completed:
     hackage: websockets-snap-0.10.3.1@sha256:5509135788e095b585737e524a832f668a5356f3088f658800e0ff94e918afbd,1042
     pantry-tree:
-      size: 331
       sha256: d4ba60fec574faf4564c9b3bc7fdd0e88f01e0e40d3ee1bbcc265daa3995ecbd
+      size: 331
   original:
     hackage: websockets-snap-0.10.3.1
 - completed:
     hackage: fold-debounce-0.2.0.11@sha256:948b0ec836a62c5207c3caac5a9f15fa483cdca8cbe1d50cadb1bc03803bbb3f,2305
     pantry-tree:
-      size: 451
       sha256: 3bba10d8fca5a1e4d426f1c5cf0f6ff408240e9f9d3308499570acd5d5413fd0
+      size: 451
   original:
     hackage: fold-debounce-0.2.0.11
 - completed:
     hackage: snap-core-1.0.5.1@sha256:c1112eaf146b15abe287479138cd8babd43c7d45d56cbb677adf3149e7d05f0b,9822
     pantry-tree:
-      size: 3429
       sha256: eb88ed54582c713e7391b88ab882c8378a752a12db18e896aedddc29793fcde6
+      size: 3429
   original:
     hackage: snap-core-1.0.5.1
 - completed:
     hackage: readable-0.3.1@sha256:13b71e63627c21447a35fe4441154410c96ba1f241cf0353692883d0eebf2085,1127
     pantry-tree:
-      size: 313
       sha256: 9432879be5327e8bad08a57cbb081149f27e88a1fb8df212dccd05ae7e65aa89
+      size: 313
   original:
     hackage: readable-0.3.1
 - completed:
     hackage: fsnotify-0.4.1.0@sha256:44540beabea36aeeef930aa4d5f28091d431904bc9923b6ac4d358831c651235,2854
     pantry-tree:
-      size: 1280
       sha256: f8e89e81fe0ca6e285036e04b165119ccfc59e7e668c1bfc28927f39062c5949
+      size: 1280
   original:
     hackage: fsnotify-0.4.1.0
 - completed:
     hackage: regex-posix-0.96.0.1@sha256:816d6acc560cb86672f347a7bef8129578dde26ed760f9e79b4976ed9bd7b9fd,2925
     pantry-tree:
-      size: 748
       sha256: ea6a3adfad8fb41a761b71afb057454a41eb76fc3f75c926d0bda90588b20529
+      size: 748
   original:
     hackage: regex-posix-0.96.0.1
 - completed:
     hackage: ansi-terminal-0.11@sha256:97470250c92aae14c4c810d7f664c532995ba8910e2ad797b29f22ad0d2d0194,3307
     pantry-tree:
-      size: 1461
       sha256: 4098c4b8bb503fcf0730aedc8247a479d3e22fd1fe4c6b4b2b2b5da30bdfb713
+      size: 1461
   original:
     hackage: ansi-terminal-0.11
-- completed:
-    name: language-glsl
-    version: 0.4.0.0
-    git: https://github.com/noteed/language-glsl.git
-    pantry-tree:
-      size: 1066
-      sha256: 155d01f395cc7df3c511df6ff35835b9d54f88a629a58098af7b54a4eeff8e63
-    commit: 99c3aae76363b127679da640a6f00d61d2203830
-  original:
-    git: https://github.com/noteed/language-glsl.git
-    commit: 99c3aae76363b127679da640a6f00d61d2203830
 snapshots:
 - completed:
+    sha256: 5a59b2a405b3aba3c00188453be172b85893cab8ebc352b1ef58b0eae5d248a2
     size: 650475
     url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/20/26.yaml
-    sha256: 5a59b2a405b3aba3c00188453be172b85893cab8ebc352b1ef58b0eae5d248a2
   original: lts-20.26

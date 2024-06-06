@@ -81,8 +81,8 @@ canonicalize env (A.At region expression) =
         Src.LowVar -> findVarQual region env prefix name
         Src.CapVar -> toVarCtor name <$> Env.findCtorQual region env prefix name
 
-    Src.LangItem name ->
-      Result.ok (Can.LangItem name)
+    Src.Intrinsic name ->
+      Result.ok (Can.Intrinsic name)
 
     Src.List exprs ->
       Can.List <$> traverse (canonicalize env) exprs

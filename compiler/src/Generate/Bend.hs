@@ -230,7 +230,7 @@ exprToBuilder maybeMain expr =
               <> Name.toBuilder ctorName
               <> ")"
         Opt.VarCycle moduleName name -> error "TODO exprToBuilder VarCycle"
-        Opt.LangItem langItem -> error ("TODO exprToBuilder langItem: " ++ show langItem)
+        Opt.Intrinsic intrinsic -> error ("TODO exprToBuilder Intrinsic: " ++ show intrinsic)
         Opt.List list ->
           "[" <> joinWith "," f list <> "]"
         Opt.Function args body -> error "TODO exprToBuilder Function"

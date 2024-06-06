@@ -19,7 +19,7 @@ module Reporting.Error.Syntax
   , Tuple(..)
   , List(..)
   , Func(..)
-  , LangItem(..)
+  , Intrinsic(..)
   , Case(..)
   , If(..)
   , Let(..)
@@ -224,7 +224,7 @@ data Expr
   | Record Record Row Col
   | Tuple Tuple Row Col
   | Func Func Row Col
-  | LangItem LangItem Row Col
+  | Intrinsic Intrinsic Row Col
   --
   | Dot Row Col
   | Access Row Col
@@ -236,8 +236,6 @@ data Expr
   | String String Row Col
   | Number Number Row Col
   | Space Space Row Col
-  | EndlessShader Row Col
-  | ShaderProblem [Char.Char] Row Col
   | IndentOperatorRight Name.Name Row Col
   deriving (Show)
 
@@ -294,10 +292,10 @@ data Func
   | FuncIndentBody Row Col
   deriving (Show)
 
-data LangItem
-  = LangItemBadFormat Row Col
-  | LangItemUnderscore Row Col
-  | LangItemName Row Col
+data Intrinsic
+  = IntrinsicBadFormat Row Col
+  | IntrinsicUnderscore Row Col
+  | IntrinsicName Row Col
   deriving (Show)
 
 data Case
@@ -2522,8 +2520,8 @@ toExprReport source context expr startRow startCol =
     Func func row col ->
       toFuncReport source context func row col
 
-    LangItem langItem row col ->
-      toLangItemReport source context langItem row col
+    Intrinsic intrinsic row col ->
+      toIntrinsicReport source context intrinsic row col
 
     Dot row col ->
       let region = toRegion row col in
@@ -2649,36 +2647,6 @@ toExprReport source context expr startRow startCol =
 
     Space space row col ->
       toSpaceReport source space row col
-
-    EndlessShader row col ->
-      let
-        region = toWiderRegion row col 6
-      in
-      Report.Report "ENDLESS SHADER" region [] $
-        Code.toSnippet source region Nothing
-          (
-            D.reflow "I cannot find the end of this shader:"
-          ,
-            D.reflow "Add a |] somewhere after this to end the shader."
-          )
-
-    ShaderProblem problem row col ->
-      let
-        region = toRegion row col
-      in
-      Report.Report "SHADER PROBLEM" region [] $
-        Code.toSnippet source region Nothing
-          (
-            D.reflow $
-              "I ran into a problem while parsing this GLSL block."
-          ,
-            D.stack
-              [ D.reflow $
-                  "I use a 3rd party GLSL parser for now, and I did my best to extract their error message:"
-              , D.indent 4 $ D.vcat $
-                  map D.fromChars (filter (/="") (lines problem))
-              ]
-          )
 
     IndentOperatorRight op row col ->
       let
@@ -4770,19 +4738,19 @@ toFuncReport source context func startRow startCol =
           )
 
 
--- LANG ITEM
+-- INTRINSIC
 
-toLangItemReport :: Code.Source -> Context -> LangItem -> Row -> Col -> Report.Report
-toLangItemReport source _ langItem startRow startCol =
-  case langItem of
-    LangItemBadFormat row col ->
-      janiczekIsLazy row col "Lang item bad format" "Lang items must start with __lang_item"
+toIntrinsicReport :: Code.Source -> Context -> Intrinsic -> Row -> Col -> Report.Report
+toIntrinsicReport source _ intrinsic startRow startCol =
+  case intrinsic of
+    IntrinsicBadFormat row col ->
+      janiczekIsLazy row col "Intrinsic bad format" "Intrinsics must start with __lang_item"
 
-    LangItemUnderscore row col ->
-      janiczekIsLazy row col "Lang item underscore" "Lang items must have _ follow the initial __lang_item"
+    IntrinsicUnderscore row col ->
+      janiczekIsLazy row col "Intrinsic underscore" "Intrinsics must have _ follow the initial __lang_item"
 
-    LangItemName row col ->
-      janiczekIsLazy row col "Lang item name" "Lang item names must follow the usual variable rules"
+    IntrinsicName row col ->
+      janiczekIsLazy row col "Intrinsic name" "Intrinsic names must follow the usual variable rules"
 
   where
     janiczekIsLazy row col title text =

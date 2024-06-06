@@ -10,7 +10,7 @@ module Optimize.Names
   , registerField
   , registerFieldDict
   , registerFieldList
-  , registerLangItem
+  , registerIntrinsic
   , noop
   )
   where
@@ -22,7 +22,7 @@ import qualified Data.Set as Set
 
 import qualified AST.Optimized as Opt
 import qualified Elm.ModuleName as ModuleName
-import qualified Elm.LangItem as LI
+import qualified Elm.Intrinsic
 
 
 -- GENERATOR
@@ -101,13 +101,13 @@ addOne name fields =
   Map.insertWith (+) name 1 fields
 
 
-registerLangItem :: Name.Name -> Tracker Opt.Expr
-registerLangItem name =
+registerIntrinsic :: Name.Name -> Tracker Opt.Expr
+registerIntrinsic name =
   Tracker $ \uid deps fields ok ->
-    case LI.parse name of
-      Nothing -> error "Elm->Bend: bad lang item"
-      Just langItem ->
-        ok uid deps fields (Opt.LangItem langItem)
+    case Elm.Intrinsic.parse name of
+      Nothing -> error "Elm->Bend: bad intrinsic"
+      Just intrinsic ->
+        ok uid deps fields (Opt.Intrinsic intrinsic)
 
 
 -- INSTANCES

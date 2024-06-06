@@ -194,7 +194,7 @@ design that makes all conversions explicit.
 -}
 add : number -> number -> number
 add =
-    __lang_item_add
+    __intrinsic_add
 
 
 {-| Subtract numbers like `4 - 3 == 1`.
@@ -204,7 +204,7 @@ See [`(+)`](#+) for docs on the `number` type variable.
 -}
 sub : number -> number -> number
 sub a b =
-    __lang_item_sub
+    __intrinsic_sub
 
 
 {-| Multiply numbers like `2 * 3 == 6`.
@@ -214,7 +214,7 @@ See [`(+)`](#+) for docs on the `number` type variable.
 -}
 mul : number -> number -> number
 mul a b =
-    __lang_item_mul
+    __intrinsic_mul
 
 
 {-| Floating-point division:
@@ -240,7 +240,7 @@ mul a b =
 -}
 fdiv : Float -> Float -> Float
 fdiv a b =
-    __lang_item_fdiv
+    __intrinsic_fdiv
 
 
 {-| Integer division:
@@ -272,7 +272,7 @@ function.
 -}
 idiv : Int -> Int -> Int
 idiv a b =
-    __lang_item_idiv
+    __intrinsic_idiv
 
 
 {-| Exponentiation
@@ -284,7 +284,7 @@ idiv a b =
 -}
 pow : number -> number -> number
 pow a b =
-    __lang_item_pow
+    __intrinsic_pow
 
 
 

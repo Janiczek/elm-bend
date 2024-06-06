@@ -19,8 +19,6 @@ extra-deps:
 
 # windows pinning for build issues
 - ansi-terminal-0.11
-- git: https://github.com/noteed/language-glsl.git
-  commit: 99c3aae76363b127679da640a6f00d61d2203830
 # Metapackage that apparently resolves below issues for windows:
 flags:
   regex-posix:

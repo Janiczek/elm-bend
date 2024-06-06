@@ -45,7 +45,7 @@ data Expr_
   | Float EF.Float
   | Var VarType Name
   | VarQual VarType Name Name
-  | LangItem Name
+  | Intrinsic Name
   | List [Expr]
   | Op Name
   | Negate Expr

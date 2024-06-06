@@ -88,7 +88,7 @@ Executable elm
         Elm.Docs
         Elm.Float
         Elm.Interface
-        Elm.LangItem
+        Elm.Intrinsic
         Elm.Licenses
         Elm.Magnitude
         Elm.ModuleName
@@ -192,7 +192,6 @@ Executable elm
         http-client,
         http-client-tls,
         http-types,
-        language-glsl,
         mtl,
         network,
         parsec,

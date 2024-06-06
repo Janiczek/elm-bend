@@ -51,8 +51,8 @@ optimize cycle (A.At _ expression) =
     Can.VarOperator _ home name _ ->
       Names.registerGlobal home name
 
-    Can.LangItem name ->
-      Names.registerLangItem name
+    Can.Intrinsic name ->
+      Names.registerIntrinsic name
 
     Can.Chr chr ->
       pure (Opt.Chr chr)

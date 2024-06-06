@@ -104,7 +104,6 @@ data Category
   | Record
   | Tuple
   | Unit
-  | Shader
   | Effects
   | Local Name.Name
   | Foreign Name.Name
@@ -366,7 +365,6 @@ addCategory thisIs category =
     Record -> thisIs <> " a record of type:"
     Tuple -> thisIs <> " a tuple of type:"
     Unit -> thisIs <> " a unit value:"
-    Shader -> thisIs <> " a GLSL shader of type:"
     Effects -> thisIs <> " a thing for CORE LIBRARIES ONLY."
     CallResult maybeName ->
       case maybeName of
