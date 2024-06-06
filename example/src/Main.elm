@@ -1,3 +1,5 @@
 module Main exposing (main)
 
-main = [True,False]
+x = 1 + 1
+
+main = [x,x]

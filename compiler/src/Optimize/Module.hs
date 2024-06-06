@@ -14,7 +14,6 @@ import qualified Data.Map as Map
 import qualified Data.Name as Name
 import qualified Data.Set as Set
 import Data.Map ((!))
-import qualified Debug.Trace
 
 import qualified AST.Canonical as Can
 import qualified AST.Optimized as Opt
@@ -63,14 +62,12 @@ addUnionCtors home (Can.Union _ ctors _) nodes =
   List.foldl' (addUnionCtor home) nodes ctors
 
 addUnionCtor :: ModuleName.Canonical -> Map.Map Opt.Global Opt.Node -> Can.Ctor -> Map.Map Opt.Global Opt.Node
-addUnionCtor home nodes ctor@(Can.Ctor ctorName _ _ _) =
-  let !_ = Debug.Trace.trace ("adding union ctor: " ++ show ctor) () in
+addUnionCtor home nodes (Can.Ctor ctorName _ _ _) =
   Map.insert (Opt.Global home ctorName) Opt.Ctor nodes
 
 
 addUnionADT :: ModuleName.Canonical -> Name.Name -> Can.Union -> Map.Map Opt.Global Opt.BendADT -> Map.Map Opt.Global Opt.BendADT
-addUnionADT home adtName union@(Can.Union _ ctors _) adts =
-  let !_ = Debug.Trace.trace ("adding union adt: " ++ show union) () in
+addUnionADT home adtName (Can.Union _ ctors _) adts =
   let toCtor (Can.Ctor ctorName _ ctorLength _) = (ctorName,ctorLength)
       global = Opt.Global home adtName
       adt = Opt.BendADT (map toCtor ctors)
@@ -137,7 +134,18 @@ addDecls home annotations decls graph =
     Can.Declare def subDecls ->
       addDecls home annotations subDecls =<< addDef home annotations def graph
 
-    Can.DeclareRec d ds subDecls ->
+    Can.DeclareRec d@(Can.Def _ _ _) ds subDecls ->
+      handleDefNormally d ds subDecls
+
+    Can.DeclareRec d@(Can.TypedDef name _ _ _ _) ds subDecls ->
+      if A.toValue name == "todo"
+      then error "somehow handle Debug.todo"
+      else handleDefNormally d ds subDecls
+
+    Can.SaveTheEnvironment ->
+      Result.ok graph
+  where
+    handleDefNormally d ds subDecls =
       let defs = d:ds in
       case findMain defs of
         Nothing ->
@@ -145,9 +153,6 @@ addDecls home annotations decls graph =
 
         Just region ->
           Result.throw $ E.BadCycle region (defToName d) (map defToName ds)
-
-    Can.SaveTheEnvironment ->
-      Result.ok graph
 
 
 findMain :: [Can.Def] -> Maybe A.Region

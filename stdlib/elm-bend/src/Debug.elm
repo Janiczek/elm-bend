@@ -9,7 +9,8 @@ module Debug exposing (todo)
 import String exposing (String)
 
 
-{-| This will be caught by the compiler and it will crash in compile time.
+{-| Will be special-handled by the Elm->Bend compiler (compiled into a
+DebugTodo expression)
 -}
 todo : String -> a
 todo label =
