@@ -231,7 +231,7 @@ append s1 s2 =
             s2
 
         Cons x xs ->
-            ConsString x (append xs s2)
+            Cons x (append xs s2)
 
 
 {-| Concatenate many strings into one.
@@ -321,7 +321,7 @@ slice from to string =
         needsToCalculateLength =
             from < 0 || to < 0
 
-        length =
+        len =
             if needsToCalculateLength then
                 length string
 
@@ -330,14 +330,14 @@ slice from to string =
 
         from_ =
             if from < 0 then
-                length + from
+                len + from
 
             else
                 from
 
         to_ =
             if to < 0 then
-                length + to
+                len + to
 
             else
                 to
@@ -363,10 +363,10 @@ left n string =
             go revAcc nn s =
                 case ( nn, s ) of
                     ( 0, _ ) ->
-                        acc
+                        revAcc
 
                     ( _, Nil ) ->
-                        acc
+                        revAcc
 
                     ( _, Cons x xs ) ->
                         go (Cons x revAcc) (nn - 1) xs
@@ -401,7 +401,7 @@ dropLeft n string =
 
     else
         let
-            go : String -> Int -> String -> String
+            go : Int -> String -> String
             go nn s =
                 case ( nn, s ) of
                     ( 0, _ ) ->
@@ -731,7 +731,7 @@ fromChar char =
 -}
 cons : Char -> String -> String
 cons =
-    ConsString
+    Cons
 
 
 {-| Split a non-empty string into its head and tail. This lets you
@@ -772,7 +772,7 @@ map fn s =
             ""
 
         Cons x xs ->
-            ConsString (fn x) (map fn xs)
+            Cons (fn x) (map fn xs)
 
 
 {-| Keep only the characters that pass the test.
