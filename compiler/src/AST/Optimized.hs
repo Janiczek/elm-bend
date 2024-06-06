@@ -31,6 +31,7 @@ import qualified Elm.Float as EF
 import qualified Elm.ModuleName as ModuleName
 import qualified Elm.String as ES
 import qualified Optimize.DecisionTree as DT
+import Elm.LangItem (LangItem)
 
 
 
@@ -44,9 +45,9 @@ data Expr
   | Float EF.Float
   | VarLocal Name
   | VarGlobal Global
-  | VarCtor Name Global -- adtName
+  | VarCtor Name Global -- the first arg is adtName
   | VarCycle ModuleName.Canonical Name
-  | DebugTodo
+  | LangItem LangItem
   | List [Expr]
   | Function [Name] Expr
   | Call Expr [Expr]
@@ -228,7 +229,7 @@ instance Binary Expr where
       VarGlobal a      -> putWord8  6 >> put a
       VarCtor a b      -> putWord8  7 >> put a >> put b
       VarCycle a b     -> putWord8  9 >> put a >> put b
-      DebugTodo        -> putWord8 10
+      LangItem a       -> putWord8 10 >> put a
       List a           -> putWord8 12 >> put a
       Function a b     -> putWord8 13 >> put a >> put b
       Call a b         -> putWord8 14 >> put a >> put b
@@ -255,7 +256,7 @@ instance Binary Expr where
           6  -> liftM  VarGlobal get
           7  -> liftM2 VarCtor get get
           9  -> liftM2 VarCycle get get
-          10 -> pure   DebugTodo
+          10 -> liftM  LangItem get
           12 -> liftM  List get
           13 -> liftM2 Function get get
           14 -> liftM2 Call get get

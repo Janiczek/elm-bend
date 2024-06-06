@@ -31,7 +31,8 @@ term :: Parser E.Expr Src.Expr
 term =
   do  start <- getPosition
       oneOf E.Start
-        [ variable start >>= accessible start
+        [ langItem start
+        , variable start >>= accessible start
         , string start
         , number start
         , list start
@@ -487,6 +488,16 @@ chompLetDefs revDefs end =
     (reverse revDefs, end)
 
 
+-- LANG ITEM EXPRESSION
+
+langItem :: A.Position -> Parser E.Expr Src.Expr
+langItem start =
+  specialize E.LangItem $
+    do  Keyword.langItem E.LangItemBadFormat
+        word1 0x5F {-_-} E.LangItemUnderscore
+        name <- Var.lower E.LangItemName
+        addEnd start (Src.LangItem name)
+      
 
 -- LET DEFINITIONS
 

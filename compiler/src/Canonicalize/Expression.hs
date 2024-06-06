@@ -81,6 +81,9 @@ canonicalize env (A.At region expression) =
         Src.LowVar -> findVarQual region env prefix name
         Src.CapVar -> toVarCtor name <$> Env.findCtorQual region env prefix name
 
+    Src.LangItem name ->
+      Result.ok (Can.LangItem name)
+
     Src.List exprs ->
       Can.List <$> traverse (canonicalize env) exprs
 
@@ -717,10 +720,7 @@ findVarQual region (Env.Env _ vs _ _ _ qvs _ _) prefix name =
           Result.throw (Error.NotFoundVar region (Just prefix) name (toPossibleNames vs qvs))
 
     Nothing ->
-      if (prefix,name) == (Name.debug, Name._todo) then
-        Result.ok Can.DebugTodo 
-      else
-        Result.throw (Error.NotFoundVar region (Just prefix) name (toPossibleNames vs qvs))
+      Result.throw (Error.NotFoundVar region (Just prefix) name (toPossibleNames vs qvs))
 
 
 toPossibleNames :: Map.Map Name.Name Env.Var -> Env.Qualified Can.Annotation -> Error.PossibleNames

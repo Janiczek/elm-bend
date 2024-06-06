@@ -71,6 +71,7 @@ Cosmetic operations such as padding with extra characters or trimming whitespace
 import Basics exposing (..)
 import Bitwise
 import Char exposing (Char)
+import Debug
 import List exposing ((::))
 import Maybe exposing (Maybe)
 import Result exposing (Result)
@@ -163,7 +164,7 @@ length string =
 -}
 reverse : String -> String
 reverse string =
-    -- TODO is this O(n^2)?
+    -- todo ()
     case string of
         Nil ->
             ""
@@ -253,7 +254,7 @@ concat strings =
 -}
 split : String -> String -> List String
 split sep string =
-    Debug.todo "String.split"
+    Debug.todo ()
 
 
 {-| Put many strings together with a given separator.
@@ -285,7 +286,7 @@ join sep chunks =
 -}
 words : String -> List String
 words =
-    Debug.todo "String.words"
+    Debug.todo ()
 
 
 {-| Break a string into lines, splitting on newlines.
@@ -295,7 +296,7 @@ words =
 -}
 lines : String -> List String
 lines string =
-    -- TODO what about \r and \r\n?
+    -- todo ()
     split "\n" string
 
 
@@ -445,7 +446,7 @@ dropRight n string =
 -}
 contains : String -> String -> Bool
 contains =
-    Debug.todo "String.contains"
+    Debug.todo ()
 
 
 {-| See if the second string starts with the first one.
@@ -457,7 +458,7 @@ contains =
 -}
 startsWith : String -> String -> Bool
 startsWith =
-    Debug.todo "String.startsWith"
+    Debug.todo ()
 
 
 {-| See if the second string ends with the first one.
@@ -469,7 +470,7 @@ startsWith =
 -}
 endsWith : String -> String -> Bool
 endsWith =
-    Debug.todo "String.endsWith"
+    Debug.todo ()
 
 
 {-| Get all of the indexes for a substring in another string.
@@ -483,7 +484,7 @@ endsWith =
 -}
 indexes : String -> String -> List Int
 indexes =
-    Debug.todo "String.indexes"
+    Debug.todo ()
 
 
 {-| Alias for `indexes`.
@@ -505,7 +506,7 @@ and VIRTUAL YELLING.
 -}
 toUpper : String -> String
 toUpper =
-    Debug.todo "String.toUpper"
+    Debug.todo ()
 
 
 {-| Convert a string to all lower case. Useful for case-insensitive comparisons.
@@ -515,7 +516,7 @@ toUpper =
 -}
 toLower : String -> String
 toLower =
-    Debug.todo "String.toLower"
+    Debug.todo ()
 
 
 {-| Pad a string on both sides until it has a given length.
@@ -571,7 +572,7 @@ padRight n char string =
 -}
 trim : String -> String
 trim =
-    Debug.todo "String.trim"
+    Debug.todo ()
 
 
 {-| Get rid of whitespace on the left of a string.
@@ -581,7 +582,7 @@ trim =
 -}
 trimLeft : String -> String
 trimLeft =
-    Debug.todo "String.trimLeft"
+    Debug.todo ()
 
 
 {-| Get rid of whitespace on the right of a string.
@@ -591,7 +592,7 @@ trimLeft =
 -}
 trimRight : String -> String
 trimRight =
-    Debug.todo "String.trimRight"
+    Debug.todo ()
 
 
 
@@ -618,7 +619,7 @@ want to use [`Maybe.withDefault`](Maybe#withDefault) to handle bad data:
 -}
 toInt : String -> Maybe Int
 toInt =
-    Debug.todo "String.toInt"
+    Debug.todo ()
 
 
 {-| Convert an `Int` to a `String`.
@@ -633,7 +634,7 @@ for debugging purposes.
 -}
 fromInt : Int -> String
 fromInt =
-    Debug.todo "String.fromInt"
+    Debug.todo ()
 
 
 
@@ -660,7 +661,7 @@ want to use [`Maybe.withDefault`](Maybe#withDefault) to handle bad data:
 -}
 toFloat : String -> Maybe Float
 toFloat =
-    Debug.todo "String.toFloat"
+    Debug.todo ()
 
 
 {-| Convert a `Float` to a `String`.
@@ -677,7 +678,7 @@ for debugging purposes.
 -}
 fromFloat : Float -> String
 fromFloat =
-    Debug.todo "String.fromFloat"
+    Debug.todo ()
 
 
 
@@ -707,7 +708,7 @@ something.
 -}
 fromList : List Char -> String
 fromList =
-    Debug.todo "String.fromList"
+    Debug.todo ()
 
 
 
@@ -744,7 +745,7 @@ pattern match on strings exactly as you would with lists.
 -}
 uncons : String -> Maybe ( Char, String )
 uncons =
-    Debug.todo "String.uncons"
+    Debug.todo ()
 
 
 
@@ -782,7 +783,7 @@ map fn s =
 -}
 filter : (Char -> Bool) -> String -> String
 filter =
-    Debug.todo "String.filter"
+    Debug.todo ()
 
 
 {-| Reduce a string from the left.
@@ -792,7 +793,7 @@ filter =
 -}
 foldl : (Char -> b -> b) -> b -> String -> b
 foldl =
-    Debug.todo "String.foldl"
+    Debug.todo ()
 
 
 {-| Reduce a string from the right.
@@ -802,7 +803,7 @@ foldl =
 -}
 foldr : (Char -> b -> b) -> b -> String -> b
 foldr =
-    Debug.todo "String.foldr"
+    Debug.todo ()
 
 
 {-| Determine whether _any_ characters pass the test.
@@ -816,7 +817,7 @@ foldr =
 -}
 any : (Char -> Bool) -> String -> Bool
 any =
-    Debug.todo "String.any"
+    Debug.todo ()
 
 
 {-| Determine whether _all_ characters pass the test.
@@ -830,4 +831,4 @@ any =
 -}
 all : (Char -> Bool) -> String -> Bool
 all =
-    Debug.todo "String.all"
+    Debug.todo ()

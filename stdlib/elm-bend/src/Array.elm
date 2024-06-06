@@ -43,6 +43,7 @@ module Array exposing
 
 import Basics exposing (..)
 import Bitwise
+import Debug
 import List exposing ((::))
 import Maybe exposing (..)
 import Tuple
@@ -149,7 +150,7 @@ empty =
        `startShift` is only used when there is at least one `Node` in the
        `tree`. The minimal value is therefore equal to the `shiftStep`.
     -}
-    Debug.todo "Array_elm_builtin 0 shiftStep JsArray.empty JsArray.empty"
+    Debug.todo ()
 
 
 {-| Determine if an array is empty.
@@ -193,7 +194,7 @@ initialize len fn =
                 remainderBy branchFactor len
 
             tail =
-                Debug.todo "JsArray.initialize tailLen (len - tailLen) fn"
+                Debug.todo ()
 
             initialFromIndex =
                 len - tailLen - branchFactor
@@ -213,7 +214,7 @@ initializeHelp fn fromIndex len nodeList tail =
     else
         let
             leaf =
-                Leaf <| Debug.todo "JsArray.initialize branchFactor fromIndex fn"
+                Leaf <| Debug.todo ()
         in
         initializeHelp
             fn
@@ -253,9 +254,9 @@ fromListHelp : List a -> List (Node a) -> Int -> Array a
 fromListHelp list nodeList nodeListSize =
     let
         ( jsArray, remainingItems ) =
-            Debug.todo "JsArray.initializeFromList branchFactor list"
+            Debug.todo ()
     in
-    if Debug.todo "JsArray.length jsArray" < branchFactor then
+    if Debug.todo () < branchFactor then
         builderToArray True
             { tail = jsArray
             , nodeList = nodeList
@@ -287,7 +288,7 @@ get index (Array_elm_builtin len startShift tree tail) =
         Nothing
 
     else if index >= tailIndex len then
-        Just <| Debug.todo "JsArray.unsafeGet (Bitwise.and bitMask index) tail"
+        Just <| Debug.todo ()
 
     else
         Just <| getHelp startShift index tree
@@ -299,12 +300,12 @@ getHelp shift index tree =
         pos =
             Bitwise.and bitMask <| Bitwise.shiftRightZfBy shift index
     in
-    case Debug.todo "JsArray.unsafeGet pos tree" of
+    case Debug.todo () of
         SubTree subTree ->
             getHelp (shift - shiftStep) index subTree
 
         Leaf values ->
-            Debug.todo "JsArray.unsafeGet (Bitwise.and bitMask index) values"
+            Debug.todo ()
 
 
 {-| Given an array length, return the index of the first element in the tail.
@@ -330,7 +331,7 @@ set index value ((Array_elm_builtin len startShift tree tail) as array) =
 
     else if index >= tailIndex len then
         Array_elm_builtin len startShift tree <|
-            Debug.todo "JsArray.unsafeSet (Bitwise.and bitMask index) value tail"
+            Debug.todo ()
 
     else
         Array_elm_builtin
@@ -346,20 +347,20 @@ setHelp shift index value tree =
         pos =
             Bitwise.and bitMask <| Bitwise.shiftRightZfBy shift index
     in
-    case Debug.todo "JsArray.unsafeGet pos tree" of
+    case Debug.todo () of
         SubTree subTree ->
             let
                 newSub =
                     setHelp (shift - shiftStep) index value subTree
             in
-            Debug.todo "JsArray.unsafeSet pos (SubTree newSub) tree"
+            Debug.todo ()
 
         Leaf values ->
             let
                 newLeaf =
-                    Debug.todo "JsArray.unsafeSet (Bitwise.and bitMask index) value values"
+                    Debug.todo ()
             in
-            Debug.todo "JsArray.unsafeSet pos (Leaf newLeaf) tree"
+            Debug.todo ()
 
 
 {-| Push an element onto the end of an array.
@@ -369,7 +370,7 @@ setHelp shift index value tree =
 -}
 push : a -> Array a -> Array a
 push a ((Array_elm_builtin _ _ _ tail) as array) =
-    unsafeReplaceTail (Debug.todo "JsArray.push a tail") array
+    unsafeReplaceTail (Debug.todo ()) array
 
 
 {-| Replaces the tail of an array. If the length of the tail equals the
@@ -384,10 +385,10 @@ unsafeReplaceTail : JsArray a -> Array a -> Array a
 unsafeReplaceTail newTail (Array_elm_builtin len startShift tree tail) =
     let
         originalTailLen =
-            Debug.todo "JsArray.length tail"
+            Debug.todo ()
 
         newTailLen =
-            Debug.todo "JsArray.length newTail"
+            Debug.todo ()
 
         newArrayLen =
             len + (newTailLen - originalTailLen)
@@ -403,21 +404,21 @@ unsafeReplaceTail newTail (Array_elm_builtin len startShift tree tail) =
                     startShift + shiftStep
 
                 newTree =
-                    Debug.todo "JsArray.singleton (SubTree tree)"
+                    Debug.todo ()
                         |> insertTailInTree newShift len newTail
             in
             Array_elm_builtin
                 newArrayLen
                 newShift
                 newTree
-                (Debug.todo "JsArray.empty")
+                (Debug.todo ())
 
         else
             Array_elm_builtin
                 newArrayLen
                 startShift
                 (insertTailInTree startShift len newTail tree)
-                (Debug.todo "JsArray.empty")
+                (Debug.todo ())
 
     else
         Array_elm_builtin
@@ -433,23 +434,23 @@ insertTailInTree shift index tail tree =
         pos =
             Bitwise.and bitMask <| Bitwise.shiftRightZfBy shift index
     in
-    if pos >= Debug.todo "JsArray.length tree" then
+    if pos >= Debug.todo () then
         if shift == 5 then
-            Debug.todo "JsArray.push (Leaf tail) tree"
+            Debug.todo ()
 
         else
             let
                 newSub =
-                    Debug.todo "JsArray.empty"
+                    Debug.todo ()
                         |> insertTailInTree (shift - shiftStep) index tail
                         |> SubTree
             in
-            Debug.todo "JsArray.push newSub tree"
+            Debug.todo ()
 
     else
         let
             value =
-                Debug.todo "JsArray.unsafeGet pos tree"
+                Debug.todo ()
         in
         case value of
             SubTree subTree ->
@@ -459,16 +460,16 @@ insertTailInTree shift index tail tree =
                             |> insertTailInTree (shift - shiftStep) index tail
                             |> SubTree
                 in
-                Debug.todo "JsArray.unsafeSet pos newSub tree"
+                Debug.todo ()
 
             Leaf _ ->
                 let
                     newSub =
-                        Debug.todo "JsArray.singleton value"
+                        Debug.todo ()
                             |> insertTailInTree (shift - shiftStep) index tail
                             |> SubTree
                 in
-                Debug.todo "JsArray.unsafeSet pos newSub tree"
+                Debug.todo ()
 
 
 {-| Create a list of elements from an array.
@@ -507,12 +508,12 @@ foldr func baseCase (Array_elm_builtin _ _ tree tail) =
         helper node acc =
             case node of
                 SubTree subTree ->
-                    Debug.todo "JsArray.foldr helper acc subTree"
+                    Debug.todo ()
 
                 Leaf values ->
-                    Debug.todo "JsArray.foldr func acc values"
+                    Debug.todo ()
     in
-    Debug.todo "JsArray.foldr helper (JsArray.foldr func baseCase tail) tree"
+    Debug.todo ()
 
 
 {-| Reduce an array from the left. Read `foldl` as fold from the left.
@@ -526,12 +527,12 @@ foldl func baseCase (Array_elm_builtin _ _ tree tail) =
         helper node acc =
             case node of
                 SubTree subTree ->
-                    Debug.todo "JsArray.foldl helper acc subTree"
+                    Debug.todo ()
 
                 Leaf values ->
-                    Debug.todo "JsArray.foldl func acc values"
+                    Debug.todo ()
     in
-    Debug.todo "JsArray.foldl func (JsArray.foldl helper baseCase tree) tail"
+    Debug.todo ()
 
 
 {-| Keep elements that pass the test.
@@ -566,16 +567,16 @@ map func (Array_elm_builtin len startShift tree tail) =
         helper node =
             case node of
                 SubTree subTree ->
-                    SubTree <| Debug.todo "JsArray.map helper subTree"
+                    SubTree <| Debug.todo ()
 
                 Leaf values ->
-                    Leaf <| Debug.todo "JsArray.map func values"
+                    Leaf <| Debug.todo ()
     in
     Array_elm_builtin
         len
         startShift
-        (Debug.todo "JsArray.map helper tree")
-        (Debug.todo "JsArray.map func tail")
+        (Debug.todo ())
+        (Debug.todo ())
 
 
 {-| Apply a function on every element with its index as first argument.
@@ -589,7 +590,7 @@ indexedMap func (Array_elm_builtin len _ tree tail) =
         helper node builder =
             case node of
                 SubTree subTree ->
-                    Debug.todo "JsArray.foldl helper builder subTree"
+                    Debug.todo ()
 
                 Leaf leaf ->
                     let
@@ -597,7 +598,7 @@ indexedMap func (Array_elm_builtin len _ tree tail) =
                             builder.nodeListSize * branchFactor
 
                         mappedLeaf =
-                            Leaf <| Debug.todo "JsArray.indexedMap func offset leaf"
+                            Leaf <| Debug.todo ()
                     in
                     { tail = builder.tail
                     , nodeList = mappedLeaf :: builder.nodeList
@@ -605,12 +606,12 @@ indexedMap func (Array_elm_builtin len _ tree tail) =
                     }
 
         initialBuilder =
-            { tail = Debug.todo "JsArray.indexedMap func (tailIndex len) tail"
+            { tail = Debug.todo ()
             , nodeList = []
             , nodeListSize = 0
             }
     in
-    builderToArray True (Debug.todo "JsArray.foldl helper initialBuilder tree")
+    builderToArray True (Debug.todo ())
 
 
 {-| Append two arrays to a new one.
@@ -626,12 +627,12 @@ append ((Array_elm_builtin _ _ _ aTail) as a) (Array_elm_builtin bLen _ bTree bT
             foldHelper node array =
                 case node of
                     SubTree tree ->
-                        Debug.todo "JsArray.foldl foldHelper array tree"
+                        Debug.todo ()
 
                     Leaf leaf ->
                         appendHelpTree leaf array
         in
-        Debug.todo "JsArray.foldl foldHelper a bTree"
+        Debug.todo ()
             |> appendHelpTree bTail
 
     else
@@ -639,12 +640,12 @@ append ((Array_elm_builtin _ _ _ aTail) as a) (Array_elm_builtin bLen _ bTree bT
             foldHelper node builder =
                 case node of
                     SubTree tree ->
-                        Debug.todo "JsArray.foldl foldHelper builder tree"
+                        Debug.todo ()
 
                     Leaf leaf ->
                         appendHelpBuilder leaf builder
         in
-        Debug.todo "JsArray.foldl foldHelper (builderFromArray a) bTree"
+        Debug.todo ()
             |> appendHelpBuilder bTail
             |> builderToArray True
 
@@ -653,13 +654,13 @@ appendHelpTree : JsArray a -> Array a -> Array a
 appendHelpTree toAppend ((Array_elm_builtin len _ tree tail) as array) =
     let
         appended =
-            Debug.todo "JsArray.appendN branchFactor tail toAppend"
+            Debug.todo ()
 
         itemsToAppend =
-            Debug.todo "JsArray.length toAppend"
+            Debug.todo ()
 
         notAppended =
-            branchFactor - Debug.todo "JsArray.length tail" - itemsToAppend
+            branchFactor - Debug.todo () - itemsToAppend
 
         newArray =
             unsafeReplaceTail appended array
@@ -667,7 +668,7 @@ appendHelpTree toAppend ((Array_elm_builtin len _ tree tail) as array) =
     if notAppended < 0 then
         let
             nextTail =
-                Debug.todo "DJsArray.slice notAppended itemsToAppend toAppend"
+                Debug.todo ()
         in
         unsafeReplaceTail nextTail newArray
 
@@ -679,22 +680,22 @@ appendHelpBuilder : JsArray a -> Builder a -> Builder a
 appendHelpBuilder tail builder =
     let
         appended =
-            Debug.todo "JsArray.appendN branchFactor builder.tail tail"
+            Debug.todo ()
 
         tailLen =
-            Debug.todo "JsArray.length tail"
+            Debug.todo ()
 
         notAppended =
-            branchFactor - Debug.todo "JsArray.length builder.tail" - tailLen
+            branchFactor - Debug.todo () - tailLen
     in
     if notAppended < 0 then
-        { tail = Debug.todo "JsArray.slice notAppended tailLen tail"
+        { tail = Debug.todo ()
         , nodeList = Leaf appended :: builder.nodeList
         , nodeListSize = builder.nodeListSize + 1
         }
 
     else if notAppended == 0 then
-        { tail = Debug.todo "JsArray.empty"
+        { tail = Debug.todo ()
         , nodeList = Leaf appended :: builder.nodeList
         , nodeListSize = builder.nodeListSize + 1
         }
@@ -795,7 +796,7 @@ sliceRight end ((Array_elm_builtin len startShift tree tail) as array) =
 
     else if end >= tailIndex len then
         Array_elm_builtin end startShift tree <|
-            Debug.todo "JsArray.slice 0 (Bitwise.and bitMask end) tail"
+            Debug.todo ()
 
     else
         let
@@ -831,12 +832,12 @@ fetchNewTail shift end treeEnd tree =
         pos =
             Bitwise.and bitMask <| Bitwise.shiftRightZfBy shift treeEnd
     in
-    case Debug.todo "JsArray.unsafeGet pos tree" of
+    case Debug.todo () of
         SubTree sub ->
             fetchNewTail (shift - shiftStep) end treeEnd sub
 
         Leaf values ->
-            Debug.todo "JsArray.slice 0 (Bitwise.and bitMask end) values"
+            Debug.todo ()
 
 
 {-| Shorten the root `Node` of the tree so it is long enough to contain
@@ -849,25 +850,25 @@ sliceTree shift endIdx tree =
         lastPos =
             Bitwise.and bitMask <| Bitwise.shiftRightZfBy shift endIdx
     in
-    case Debug.todo "JsArray.unsafeGet lastPos tree" of
+    case Debug.todo () of
         SubTree sub ->
             let
                 newSub =
                     sliceTree (shift - shiftStep) endIdx sub
             in
-            if Debug.todo "JsArray.length newSub" == 0 then
+            if Debug.todo () == 0 then
                 -- The sub is empty, slice it away
-                Debug.todo "JsArray.slice 0 lastPos tree"
+                Debug.todo ()
 
             else
                 tree
-                    |> Debug.todo "JsArray.slice 0 (lastPos + 1)"
-                    |> Debug.todo "JsArray.unsafeSet lastPos (SubTree newSub)"
+                    |> Debug.todo ()
+                    |> Debug.todo ()
 
         -- This is supposed to be the new tail. Fetched by `fetchNewTail`.
         -- Slice up to, but not including, this point.
         Leaf _ ->
-            Debug.todo "JsArray.slice 0 lastPos tree"
+            Debug.todo ()
 
 
 {-| The tree is supposed to be of a certain depth. Since slicing removes
@@ -877,11 +878,11 @@ to do so.
 -}
 hoistTree : Int -> Int -> Tree a -> Tree a
 hoistTree oldShift newShift tree =
-    if oldShift <= newShift || Debug.todo "JsArray.length tree" == 0 then
+    if oldShift <= newShift || Debug.todo () == 0 then
         tree
 
     else
-        case Debug.todo "JsArray.unsafeGet 0 tree" of
+        case Debug.todo () of
             SubTree sub ->
                 hoistTree (oldShift - shiftStep) newShift sub
 
@@ -914,21 +915,21 @@ sliceLeft from ((Array_elm_builtin len _ tree tail) as array) =
         array
 
     else if from >= tailIndex len then
-        Array_elm_builtin (len - from) shiftStep (Debug.todo "JsArray.empty") <|
-            Debug.todo "JsArray.slice (from - tailIndex len) (JsArray.length tail) tail"
+        Array_elm_builtin (len - from) shiftStep (Debug.todo ()) <|
+            Debug.todo ()
 
     else
         let
             helper node acc =
                 case node of
                     SubTree subTree ->
-                        Debug.todo "JsArray.foldr helper acc subTree"
+                        Debug.todo ()
 
                     Leaf leaf ->
                         leaf :: acc
 
             leafNodes =
-                Debug.todo "JsArray.foldr helper [ tail ] tree"
+                Debug.todo ()
 
             skipNodes =
                 from // branchFactor
@@ -946,7 +947,7 @@ sliceLeft from ((Array_elm_builtin len _ tree tail) as array) =
                         from - (skipNodes * branchFactor)
 
                     initialBuilder =
-                        { tail = Debug.todo "JsArray.slice firstSlice (JsArray.length head) head"
+                        { tail = Debug.todo ()
                         , nodeList = []
                         , nodeListSize = 0
                         }
@@ -970,7 +971,7 @@ type alias Builder a =
 -}
 emptyBuilder : Builder a
 emptyBuilder =
-    { tail = Debug.todo "JsArray.empty"
+    { tail = Debug.todo ()
     , nodeList = []
     , nodeListSize = 0
     }
@@ -984,13 +985,13 @@ builderFromArray (Array_elm_builtin len _ tree tail) =
         helper node acc =
             case node of
                 SubTree subTree ->
-                    Debug.todo "JsArray.foldl helper acc subTree"
+                    Debug.todo ()
 
                 Leaf _ ->
                     node :: acc
     in
     { tail = tail
-    , nodeList = Debug.todo "JsArray.foldl helper [] tree"
+    , nodeList = Debug.todo ()
     , nodeListSize = len // branchFactor
     }
 
@@ -1007,9 +1008,9 @@ builderToArray : Bool -> Builder a -> Array a
 builderToArray reverseNodeList builder =
     if builder.nodeListSize == 0 then
         Array_elm_builtin
-            (Debug.todo "JsArray.length builder.tail")
+            (Debug.todo ())
             shiftStep
-            (Debug.todo "JsArray.empty")
+            (Debug.todo ())
             builder.tail
 
     else
@@ -1034,7 +1035,7 @@ builderToArray reverseNodeList builder =
                 treeFromBuilder correctNodeList builder.nodeListSize
         in
         Array_elm_builtin
-            (Debug.todo "JsArray.length builder.tail" + treeLen)
+            (Debug.todo () + treeLen)
             (max 5 <| depth * shiftStep)
             tree
             builder.tail
@@ -1051,7 +1052,7 @@ treeFromBuilder nodeList nodeListSize =
                 |> ceiling
     in
     if newNodeSize == 1 then
-        Debug.todo "JsArray.initializeFromList branchFactor nodeList"
+        Debug.todo ()
             |> Tuple.first
 
     else
@@ -1067,7 +1068,7 @@ compressNodes : List (Node a) -> List (Node a) -> List (Node a)
 compressNodes nodes acc =
     let
         ( node, remainingNodes ) =
-            Debug.todo "JsArray.initializeFromList branchFactor nodes"
+            Debug.todo ()
 
         newAcc =
             SubTree node :: acc

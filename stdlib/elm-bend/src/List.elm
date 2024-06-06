@@ -45,6 +45,7 @@ with them!
 -}
 
 import Basics exposing (..)
+import Debug
 import Maybe exposing (Maybe(..))
 
 
@@ -569,7 +570,7 @@ sort xs =
 -}
 sortBy : (a -> comparable) -> List a -> List a
 sortBy =
-    Debug.todo "List.sortBy"
+    Debug.todo ()
 
 
 {-| Sort values with a custom comparison function.
@@ -588,7 +589,7 @@ to define any other: `sort == sortWith compare`
 -}
 sortWith : (a -> a -> Order) -> List a -> List a
 sortWith =
-    Debug.todo "List.sortWith"
+    Debug.todo ()
 
 
 

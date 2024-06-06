@@ -6,12 +6,17 @@ module Debug exposing (todo)
 
 -}
 
-import String exposing (String)
 
+todo : () -> a
+todo () =
+    {- This way of crashing run-time will stop working once Bend supports
+       cloning non-affine lambdas. We'll need to figure out another way then.
+    -}
+    let
+        nonaffine a =
+            ( a, a )
 
-{-| Will be special-handled by the Elm->Bend compiler (compiled into a
-DebugTodo expression)
--}
-todo : String -> a
-todo label =
-    todo label
+        boom =
+            ( nonaffine, nonaffine )
+    in
+    todo ()

@@ -194,7 +194,7 @@ design that makes all conversions explicit.
 -}
 add : number -> number -> number
 add =
-    Debug.todo "Basics.add"
+    __lang_item_add
 
 
 {-| Subtract numbers like `4 - 3 == 1`.
@@ -203,8 +203,8 @@ See [`(+)`](#+) for docs on the `number` type variable.
 
 -}
 sub : number -> number -> number
-sub =
-    Debug.todo "Basics.sub"
+sub a b =
+    __lang_item_sub
 
 
 {-| Multiply numbers like `2 * 3 == 6`.
@@ -213,8 +213,8 @@ See [`(+)`](#+) for docs on the `number` type variable.
 
 -}
 mul : number -> number -> number
-mul =
-    Debug.todo "Basics.mul"
+mul a b =
+    __lang_item_mul
 
 
 {-| Floating-point division:
@@ -239,8 +239,8 @@ mul =
 
 -}
 fdiv : Float -> Float -> Float
-fdiv =
-    Debug.todo "Basics.fdiv"
+fdiv a b =
+    __lang_item_fdiv
 
 
 {-| Integer division:
@@ -271,8 +271,8 @@ function.
 
 -}
 idiv : Int -> Int -> Int
-idiv =
-    Debug.todo "Basics.idiv"
+idiv a b =
+    __lang_item_idiv
 
 
 {-| Exponentiation
@@ -283,8 +283,8 @@ idiv =
 
 -}
 pow : number -> number -> number
-pow =
-    Debug.todo "Basics.pow"
+pow a b =
+    __lang_item_pow
 
 
 
@@ -301,7 +301,7 @@ values like this:
 -}
 toFloat : Int -> Float
 toFloat =
-    Debug.todo "Basics.toFloat"
+    ourDebugTodo ()
 
 
 {-| Round a number to the nearest integer.
@@ -323,7 +323,7 @@ toFloat =
 -}
 round : Float -> Int
 round =
-    Debug.todo "Basics.round"
+    ourDebugTodo ()
 
 
 {-| Floor function, rounding down.
@@ -345,7 +345,7 @@ round =
 -}
 floor : Float -> Int
 floor =
-    Debug.todo "Basics.floor"
+    ourDebugTodo ()
 
 
 {-| Ceiling function, rounding up.
@@ -367,7 +367,7 @@ floor =
 -}
 ceiling : Float -> Int
 ceiling =
-    Debug.todo "Basics.ceiling"
+    ourDebugTodo ()
 
 
 {-| Truncate a number, rounding towards zero.
@@ -389,7 +389,7 @@ ceiling =
 -}
 truncate : Float -> Int
 truncate =
-    Debug.todo "Basics.truncate"
+    ourDebugTodo ()
 
 
 
@@ -422,7 +422,7 @@ possible.
 -}
 eq : a -> a -> Bool
 eq =
-    Debug.todo "Basics.eq"
+    ourDebugTodo ()
 
 
 {-| Check if values are not &ldquo;the same&rdquo;.
@@ -432,7 +432,7 @@ So `(a /= b)` is the same as `(not (a == b))`.
 -}
 neq : a -> a -> Bool
 neq =
-    Debug.todo "Basics.neq"
+    ourDebugTodo ()
 
 
 
@@ -442,25 +442,25 @@ neq =
 {-| -}
 lt : comparable -> comparable -> Bool
 lt =
-    Debug.todo "Basics.lt"
+    ourDebugTodo ()
 
 
 {-| -}
 gt : comparable -> comparable -> Bool
 gt =
-    Debug.todo "Basics.gt"
+    ourDebugTodo ()
 
 
 {-| -}
 le : comparable -> comparable -> Bool
 le =
-    Debug.todo "Basics.le"
+    ourDebugTodo ()
 
 
 {-| -}
 ge : comparable -> comparable -> Bool
 ge =
-    Debug.todo "Basics.ge"
+    ourDebugTodo ()
 
 
 {-| Find the smaller of two comparables.
@@ -508,7 +508,7 @@ are also the only values that work as `Dict` keys or `Set` members.
 -}
 compare : comparable -> comparable -> Order
 compare =
-    Debug.todo "Basics.compare"
+    ourDebugTodo ()
 
 
 {-| Represents the relative ordering of two things.
@@ -575,7 +575,7 @@ and just return `False` overall.
 -}
 and : Bool -> Bool -> Bool
 and =
-    Debug.todo "Basics.and"
+    ourDebugTodo ()
 
 
 {-| The logical OR operator. `True` if one or both inputs are `True`.
@@ -595,7 +595,7 @@ and just return `True` overall.
 -}
 or : Bool -> Bool -> Bool
 or =
-    Debug.todo "Basics.or"
+    ourDebugTodo ()
 
 
 {-| The exclusive-or operator. `True` if exactly one input is `True`.
@@ -611,7 +611,7 @@ or =
 -}
 xor : Bool -> Bool -> Bool
 xor =
-    Debug.todo "Basics.xor"
+    ourDebugTodo ()
 
 
 
@@ -627,7 +627,7 @@ xor =
 -}
 append : appendable -> appendable -> appendable
 append =
-    Debug.todo "Basics.append"
+    ourDebugTodo ()
 
 
 
@@ -660,7 +660,7 @@ information.
 -}
 modBy : Int -> Int -> Int
 modBy =
-    Debug.todo "Basics.modBy"
+    ourDebugTodo ()
 
 
 {-| Get the remainder after division. Here are bunch of examples of dividing by four:
@@ -677,7 +677,7 @@ information.
 -}
 remainderBy : Int -> Int -> Int
 remainderBy =
-    Debug.todo "Basics.remainderBy"
+    ourDebugTodo ()
 
 
 {-| Negate a number.
@@ -749,7 +749,7 @@ clamp low high number =
 -}
 sqrt : Float -> Float
 sqrt =
-    Debug.todo "Basics.sqrt"
+    ourDebugTodo ()
 
 
 {-| Calculate the logarithm of a number with a given base.
@@ -762,15 +762,15 @@ sqrt =
 logBase : Float -> Float -> Float
 logBase base number =
     fdiv
-        (Debug.todo "Basics.log" number)
-        (Debug.todo "Basics.log" base)
+        (ourDebugTodo () number)
+        (ourDebugTodo () base)
 
 
 {-| An approximation of e.
 -}
 e : Float
 e =
-    Debug.todo "Basics.e"
+    ourDebugTodo ()
 
 
 
@@ -815,7 +815,7 @@ turns angleInTurns =
 -}
 pi : Float
 pi =
-    Debug.todo "Basics.pi"
+    ourDebugTodo ()
 
 
 {-| Figure out the cosine given an angle in radians.
@@ -831,7 +831,7 @@ pi =
 -}
 cos : Float -> Float
 cos =
-    Debug.todo "Basics.cos"
+    ourDebugTodo ()
 
 
 {-| Figure out the sine given an angle in radians.
@@ -847,7 +847,7 @@ cos =
 -}
 sin : Float -> Float
 sin =
-    Debug.todo "Basics.sin"
+    ourDebugTodo ()
 
 
 {-| Figure out the tangent given an angle in radians.
@@ -863,7 +863,7 @@ sin =
 -}
 tan : Float -> Float
 tan =
-    Debug.todo "Basics.tan"
+    ourDebugTodo ()
 
 
 {-| Figure out the arccosine for `adjacent / hypotenuse` in radians:
@@ -873,7 +873,7 @@ tan =
 -}
 acos : Float -> Float
 acos =
-    Debug.todo "Basics.acos"
+    ourDebugTodo ()
 
 
 {-| Figure out the arcsine for `opposite / hypotenuse` in radians:
@@ -883,7 +883,7 @@ acos =
 -}
 asin : Float -> Float
 asin =
-    Debug.todo "Basics.asin"
+    ourDebugTodo ()
 
 
 {-| This helps you find the angle (in radians) to an `(x,y)` coordinate, but
@@ -910,7 +910,7 @@ for figuring out angles in any sort of visualization, so again, check out
 -}
 atan : Float -> Float
 atan =
-    Debug.todo "Basics.atan"
+    ourDebugTodo ()
 
 
 {-| This helps you find the angle (in radians) to an `(x,y)` coordinate.
@@ -928,7 +928,7 @@ range of angles:
 -}
 atan2 : Float -> Float -> Float
 atan2 =
-    Debug.todo "Basics.atan2"
+    ourDebugTodo ()
 
 
 
@@ -980,7 +980,7 @@ numbers](https://en.wikipedia.org/wiki/NaN).
 -}
 isNaN : Float -> Bool
 isNaN =
-    Debug.todo "Basics.isNaN"
+    ourDebugTodo ()
 
 
 {-| Determine whether a float is positive or negative infinity.
@@ -999,7 +999,7 @@ Notice that NaN is not infinite! For float `n` to be finite implies that
 -}
 isInfinite : Float -> Bool
 isInfinite =
-    Debug.todo "Basics.isInfinite"
+    ourDebugTodo ()
 
 
 
@@ -1149,3 +1149,19 @@ ever calls me!
 never : Never -> a
 never (JustOneMore nvr) =
     never nvr
+
+
+ourDebugTodo : () -> a
+ourDebugTodo () =
+    -- A copy of Debug.todo; trying to avoid circular deps.
+    -- Ideally once the Elm->Bend compiler work is done,
+    -- there will be no usages of Debug.todo left in
+    -- Basics.
+    let
+        nonaffine a =
+            ( a, a )
+
+        boom =
+            ( nonaffine, nonaffine )
+    in
+    ourDebugTodo ()

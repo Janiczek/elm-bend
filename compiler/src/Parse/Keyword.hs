@@ -8,6 +8,7 @@ module Parse.Keyword
   , infix_, left_, right_, non_
   , module_, import_, exposing_, as_
   , effect_, where_, command_, subscription_
+  , langItem
   , k4, k5
   )
   where
@@ -19,6 +20,8 @@ import Data.Word (Word8)
 import Parse.Primitives (Parser, Row, Col)
 import qualified Parse.Variable as Var
 import qualified Parse.Primitives as P
+
+import qualified Debug.Trace
 
 
 
@@ -142,6 +145,30 @@ subscription_ toError =
       eerr row col toError
 
 
+-- LANG ITEMS
+
+langItem :: (Row -> Col -> x) -> Parser x ()
+langItem toError =
+  -- [hex(ord(x)) for x in "__lang_item"]
+  P.Parser $ \(P.State src pos end indent row col) cok _ _ eerr ->
+    let !pos11 = plusPtr pos 11 in
+    if pos11 <= end
+      && P.unsafeIndex (        pos   ) == 0x5F
+      && P.unsafeIndex (plusPtr pos  1) == 0x5F
+      && P.unsafeIndex (plusPtr pos  2) == 0x6C
+      && P.unsafeIndex (plusPtr pos  3) == 0x61
+      && P.unsafeIndex (plusPtr pos  4) == 0x6E
+      && P.unsafeIndex (plusPtr pos  5) == 0x67
+      && P.unsafeIndex (plusPtr pos  6) == 0x5F
+      && P.unsafeIndex (plusPtr pos  7) == 0x69
+      && P.unsafeIndex (plusPtr pos  8) == 0x74
+      && P.unsafeIndex (plusPtr pos  9) == 0x65
+      && P.unsafeIndex (plusPtr pos 10) == 0x6D
+      && Var.getInnerWidth pos11 end > 0 -- we need the _ and the name as well
+    then
+      let !s = P.State src pos11 end indent row (col + 11) in cok () s
+    else
+      eerr row col toError
 
 -- KEYWORDS
 

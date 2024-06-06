@@ -48,11 +48,11 @@ optimize cycle (A.At _ expression) =
     Can.VarCtor adtName home ctorName _ _ ->
       Names.registerCtor adtName home ctorName
 
-    Can.DebugTodo ->
-      Names.registerDebugTodo
-
     Can.VarOperator _ home name _ ->
       Names.registerGlobal home name
+
+    Can.LangItem name ->
+      Names.registerLangItem name
 
     Can.Chr chr ->
       pure (Opt.Chr chr)

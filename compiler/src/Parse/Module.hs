@@ -75,8 +75,6 @@ chompModule projectType =
       decls <- specialize E.Declarations $ chompDecls []
       return (Module header imports infixes decls)
 
-
-
 -- CHECK MODULE
 
 

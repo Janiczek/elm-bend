@@ -230,8 +230,7 @@ exprToBuilder maybeMain expr =
               <> Name.toBuilder ctorName
               <> ")"
         Opt.VarCycle moduleName name -> error "TODO exprToBuilder VarCycle"
-        Opt.DebugTodo ->
-          error "Elm->Bend: encountered Debug.todo"
+        Opt.LangItem langItem -> error ("TODO exprToBuilder langItem: " ++ show langItem)
         Opt.List list ->
           "[" <> joinWith "," f list <> "]"
         Opt.Function args body -> error "TODO exprToBuilder Function"

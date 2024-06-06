@@ -279,7 +279,7 @@ checkExpr (A.At region expression) errors =
     Can.VarOperator _ _ _ _ ->
       errors
 
-    Can.DebugTodo ->
+    Can.LangItem _ ->
       errors
 
     Can.Chr _ ->

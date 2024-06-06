@@ -6,11 +6,11 @@ module Optimize.Names
   , run
   , generate
   , registerGlobal
-  , registerDebugTodo
   , registerCtor
   , registerField
   , registerFieldDict
   , registerFieldList
+  , registerLangItem
   , noop
   )
   where
@@ -22,7 +22,7 @@ import qualified Data.Set as Set
 
 import qualified AST.Optimized as Opt
 import qualified Elm.ModuleName as ModuleName
-
+import qualified Elm.LangItem as LI
 
 
 -- GENERATOR
@@ -63,11 +63,6 @@ registerGlobal home name =
     ok uid (Set.insert global deps) fields (Opt.VarGlobal global)
 
 
-registerDebugTodo :: Tracker Opt.Expr
-registerDebugTodo =
-  Tracker $ \uid deps fields ok ->
-    let global = Opt.Global ModuleName.debug Name._todo in
-    ok uid (Set.insert global deps) fields Opt.DebugTodo
 
 
 registerCtor :: Name.Name -> ModuleName.Canonical -> Name.Name -> Tracker Opt.Expr
@@ -91,7 +86,6 @@ registerFieldDict newFields value =
   Tracker $ \uid d fields ok ->
     ok uid d (Map.unionWith (+) fields (Map.map toOne newFields)) value
 
-
 toOne :: a -> Int
 toOne _ = 1
 
@@ -106,6 +100,14 @@ addOne :: Name.Name -> Map.Map Name.Name Int -> Map.Map Name.Name Int
 addOne name fields =
   Map.insertWith (+) name 1 fields
 
+
+registerLangItem :: Name.Name -> Tracker Opt.Expr
+registerLangItem name =
+  Tracker $ \uid deps fields ok ->
+    case LI.parse name of
+      Nothing -> error "Elm->Bend: bad lang item"
+      Just langItem ->
+        ok uid deps fields (Opt.LangItem langItem)
 
 
 -- INSTANCES

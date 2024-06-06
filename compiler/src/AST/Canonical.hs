@@ -77,7 +77,7 @@ data Expr_
   | VarForeign ModuleName.Canonical Name Annotation
   | VarCtor Name ModuleName.Canonical Name Index.ZeroBased Annotation
   | VarOperator Name ModuleName.Canonical Name Annotation -- CACHE real name for optimization
-  | DebugTodo
+  | LangItem Name
   | Chr ES.String
   | Str ES.String
   | Int Int

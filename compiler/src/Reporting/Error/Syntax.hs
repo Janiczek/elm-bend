@@ -19,6 +19,7 @@ module Reporting.Error.Syntax
   , Tuple(..)
   , List(..)
   , Func(..)
+  , LangItem(..)
   , Case(..)
   , If(..)
   , Let(..)
@@ -223,6 +224,7 @@ data Expr
   | Record Record Row Col
   | Tuple Tuple Row Col
   | Func Func Row Col
+  | LangItem LangItem Row Col
   --
   | Dot Row Col
   | Access Row Col
@@ -292,6 +294,11 @@ data Func
   | FuncIndentBody Row Col
   deriving (Show)
 
+data LangItem
+  = LangItemBadFormat Row Col
+  | LangItemUnderscore Row Col
+  | LangItemName Row Col
+  deriving (Show)
 
 data Case
   = CaseSpace Space Row Col
@@ -2514,6 +2521,9 @@ toExprReport source context expr startRow startCol =
 
     Func func row col ->
       toFuncReport source context func row col
+
+    LangItem langItem row col ->
+      toLangItemReport source context langItem row col
 
     Dot row col ->
       let region = toRegion row col in
@@ -4758,6 +4768,31 @@ toFuncReport source context func startRow startCol =
                   \ the whole thing out into a named function. Things tend to be clearer that way!"
               ]
           )
+
+
+-- LANG ITEM
+
+toLangItemReport :: Code.Source -> Context -> LangItem -> Row -> Col -> Report.Report
+toLangItemReport source _ langItem startRow startCol =
+  case langItem of
+    LangItemBadFormat row col ->
+      janiczekIsLazy row col "Lang item bad format" "Lang items must start with __lang_item"
+
+    LangItemUnderscore row col ->
+      janiczekIsLazy row col "Lang item underscore" "Lang items must have _ follow the initial __lang_item"
+
+    LangItemName row col ->
+      janiczekIsLazy row col "Lang item name" "Lang item names must follow the usual variable rules"
+
+  where
+    janiczekIsLazy row col title text =
+      let
+        surroundings = A.Region (A.Position startRow startCol) (A.Position row col)
+        region = toRegion row col
+      in
+      Report.Report title region [] $
+        Code.toSnippet source surroundings (Just region)
+          (D.reflow text, D.reflow "¯\\_(ツ)_/¯")
 
 
 
