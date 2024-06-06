@@ -230,7 +230,8 @@ exprToBuilder maybeMain expr =
               <> Name.toBuilder ctorName
               <> ")"
         Opt.VarCycle moduleName name -> error "TODO exprToBuilder VarCycle"
-        Opt.DebugTodo -> error "TODO exprToBuilder DebugTodo"
+        Opt.DebugTodo ->
+          error "Elm->Bend: encountered Debug.todo"
         Opt.List list ->
           "[" <> joinWith "," f list <> "]"
         Opt.Function args body -> error "TODO exprToBuilder Function"
@@ -252,3 +253,4 @@ exprToBuilder maybeMain expr =
               "(" <> f t1 <> "," <> f t2 <> ")"
             Just t3 ->
               "(" <> f t1 <> ",(" <> f t2 <> "," <> f t3 <> "))"
+

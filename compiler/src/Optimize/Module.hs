@@ -138,8 +138,9 @@ addDecls home annotations decls graph =
       handleDefNormally d ds subDecls
 
     Can.DeclareRec d@(Can.TypedDef name _ _ _ _) ds subDecls ->
-      if A.toValue name == "todo"
-      then error "somehow handle Debug.todo"
+      let name_ = A.toValue name in
+      if home == ModuleName.debug && name_ == "todo"
+      then handleDebugTodo name_
       else handleDefNormally d ds subDecls
 
     Can.SaveTheEnvironment ->
@@ -153,6 +154,14 @@ addDecls home annotations decls graph =
 
         Just region ->
           Result.throw $ E.BadCycle region (defToName d) (map defToName ds)
+
+    handleDebugTodo name =
+      Result.ok $
+        addToGraph 
+          (Opt.Global home name)
+          (Opt.Define Opt.DebugTodo Set.empty)
+          Map.empty
+          graph
 
 
 findMain :: [Can.Def] -> Maybe A.Region
