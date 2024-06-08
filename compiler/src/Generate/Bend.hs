@@ -20,6 +20,7 @@ import Debug.Trace
 import qualified Elm.Float as Float
 import qualified Elm.ModuleName as ModuleName
 import qualified Elm.Package as Pkg
+import qualified Elm.Intrinsic
 
 -- GENERATE
 
@@ -230,11 +231,13 @@ exprToBuilder maybeMain expr =
               <> Name.toBuilder ctorName
               <> ")"
         Opt.VarCycle moduleName name -> error "TODO exprToBuilder VarCycle"
-        Opt.Intrinsic intrinsic -> error ("TODO exprToBuilder Intrinsic: " ++ show intrinsic)
+        Opt.Intrinsic intrinsic ->
+          intrinsicToBuilder intrinsic
         Opt.List list ->
           "[" <> joinWith "," f list <> "]"
         Opt.Function args body -> error "TODO exprToBuilder Function"
-        Opt.Call fn args -> error "TODO exprToBuilder Call"
+        Opt.Call fn args ->
+          "(" <> f fn <> " " <> joinWith " " f args <> ")"
         Opt.TailCall a as -> error "TODO exprToBuilder TailCall"
         Opt.If a1 a2 -> error "TODO exprToBuilder If"
         Opt.Let def expr_ -> error "TODO exprToBuilder Let"
@@ -253,3 +256,12 @@ exprToBuilder maybeMain expr =
             Just t3 ->
               "(" <> f t1 <> ",(" <> f t2 <> "," <> f t3 <> "))"
 
+intrinsicToBuilder :: Elm.Intrinsic.Intrinsic -> B.Builder
+intrinsicToBuilder intrinsic =
+  case intrinsic of
+    Elm.Intrinsic.Add -> "(@a @b (+ a b))"
+    Elm.Intrinsic.Sub -> "(@a @b (- a b))"
+    Elm.Intrinsic.Mul -> "(@a @b (* a b))"
+    Elm.Intrinsic.Fdiv -> "(@a @b (/ a b))"
+    Elm.Intrinsic.Idiv -> "(@a @b (/ a b))"
+    Elm.Intrinsic.Pow -> error "TODO intrinsicToBuilder - Pow"
