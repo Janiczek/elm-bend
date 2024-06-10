@@ -117,8 +117,7 @@ addGlobalHelp maybeMain graph global state =
         Opt.Ctor ->
           state
         Opt.Link linkedGlobal ->
-          -- addGlobal graph state linkedGlobal
-          error ("TODO Opt.Link: " ++ show linkedGlobal)
+          addGlobal maybeMain graph state linkedGlobal
         Opt.Cycle names values functions deps ->
           -- addStmt
           --   (addDeps deps state)
