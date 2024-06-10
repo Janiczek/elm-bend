@@ -89,18 +89,8 @@ initBuilders :: [B.Builder]
 initBuilders =
   -- TODO munging rules ... //, / etc. instead of $
   reverse
-  [ -- tuples
-    "_Elm.GetTuple.el0 (a,*) = a",
-    "_Elm.GetTuple.el1 (*,b) = b",
-    -- triples
-    "_Elm.GetTriple.el0 (a,*)     = a",
-    "_Elm.GetTriple.el1 (*,(b,*)) = b",
-    "_Elm.GetTriple.el2 (*,(*,c)) = c",
-    -- unit
-    "type Basics/Unit = Unit",
-    ""
-
-  ]
+    [ "# Hello from Elm->Bend!"
+    ]
 
 -- ADD DEPENDENCIES
 
@@ -189,7 +179,7 @@ delim =
 exprToBuilder :: Maybe ModuleName.Canonical -> Opt.Expr -> B.Builder
 exprToBuilder maybeMain expr =
   let f = exprToBuilder maybeMain
-   in case expr of
+   in case Debug.Trace.traceShowId expr of
         Opt.Chr str -> error "TODO exprToBuilder Chr"
         Opt.Str str ->
           "\"" <> Utf8.toBuilder str <> "\""
@@ -239,18 +229,39 @@ exprToBuilder maybeMain expr =
           "(" <> f fn <> " " <> joinWith " " f args <> ")"
         Opt.TailCall a as -> error "TODO exprToBuilder TailCall"
         Opt.If a1 a2 -> error "TODO exprToBuilder If"
-        Opt.Let def expr_ -> error "TODO exprToBuilder Let"
-        Opt.Destruct d expr -> error "TODO exprToBuilder Destruct"
+        Opt.Let def expr_ ->
+          let defToBuilder (Opt.Def name expr__) =
+                Name.toBuilder name 
+                <> " = " 
+                <> f expr__
+              defToBuilder (Opt.TailDef name args expr__) =
+                Name.toBuilder name 
+                <> " = "
+                <> f (Opt.Function args expr__)
+          in
+          "let " <> defToBuilder def <> "; " <> f expr_
+
+        Opt.Destruct (Opt.Destructor name path) expr_ ->
+          let tuple root pre post = "let " <> pre <> Name.toBuilder name <> post <> " = " <> Name.toBuilder root <> "; " <> f expr_
+          in
+          case path of
+            Opt.GetTupleEl0  (Opt.Root root) -> tuple root "(" ",*)"
+            Opt.GetTupleEl1  (Opt.Root root) -> tuple root "(*," ")"
+            Opt.GetTripleEl0 (Opt.Root root) -> tuple root "(" ",*,*)"
+            Opt.GetTripleEl1 (Opt.Root root) -> tuple root "(*," ",*)"
+            Opt.GetTripleEl2 (Opt.Root root) -> tuple root "(*,*," ")"
+            _ -> error ("TODO exprToBuilder Destruct: " ++ show ((name,path),expr_))
         Opt.Case n1 n2 decider cases -> error "TODO exprToBuilder Case"
         Opt.Accessor name -> error "TODO exprToBuilder Accessor"
         Opt.Access expr_ name -> error "TODO exprToBuilder Access"
         Opt.Update expr_ fields -> error "TODO exprToBuilder Update"
         Opt.Record fields -> error "TODO exprToBuilder Record"
         Opt.Unit ->
+          -- requires that Basics.elm contains and exposes `type Unit = Unit`
           "(Basics/Unit/Unit)"
         Opt.Tuple t1 t2 mt3 ->
           case mt3 of
             Nothing ->
               "(" <> f t1 <> "," <> f t2 <> ")"
             Just t3 ->
-              "(" <> f t1 <> ",(" <> f t2 <> "," <> f t3 <> "))"
+              "(" <> f t1 <> "," <> f t2 <> "," <> f t3 <> ")"

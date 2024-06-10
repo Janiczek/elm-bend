@@ -86,7 +86,12 @@ data Destructor =
 
 
 data Path
-  = Index Index.ZeroBased Path
+  = CtorIndex Index.ZeroBased Path
+  | GetTupleEl0 Path
+  | GetTupleEl1 Path
+  | GetTripleEl0 Path
+  | GetTripleEl1 Path
+  | GetTripleEl2 Path
   | Field Name Path
   | Root Name
   deriving (Show)
@@ -296,16 +301,26 @@ instance Binary Destructor where
 instance Binary Path where
   put destructor =
     case destructor of
-      Index a b -> putWord8 0 >> put a >> put b
-      Field a b -> putWord8 1 >> put a >> put b
-      Root a    -> putWord8 3 >> put a
+      CtorIndex a b  -> putWord8 0 >> put a >> put b
+      Field a b      -> putWord8 1 >> put a >> put b
+      Root a         -> putWord8 3 >> put a
+      GetTupleEl0 a  -> putWord8 4 >> put a
+      GetTupleEl1 a  -> putWord8 5 >> put a
+      GetTripleEl0 a -> putWord8 6 >> put a
+      GetTripleEl1 a -> putWord8 7 >> put a
+      GetTripleEl2 a -> putWord8 8 >> put a
 
   get =
     do  word <- getWord8
         case word of
-          0 -> liftM2 Index get get
+          0 -> liftM2 CtorIndex get get
           1 -> liftM2 Field get get
           3 -> liftM  Root get
+          4 -> liftM  GetTupleEl0 get
+          5 -> liftM  GetTupleEl1 get
+          6 -> liftM  GetTripleEl0 get
+          7 -> liftM  GetTripleEl1 get
+          8 -> liftM  GetTripleEl2 get
           _ -> fail "problem getting Opt.Path binary"
 
 

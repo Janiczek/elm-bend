@@ -10,11 +10,10 @@ module Basics exposing
     , pi, cos, sin, tan, acos, asin, atan, atan2
     , toPolar, fromPolar
     , isNaN, isInfinite
-    , identity, always, (<|), (|>), (<<), (>>), Never, never
+    , identity, always, (<|), (|>), (<<), (>>), Never, never, Unit
     )
 
 {-| Tons of useful functions that get imported by default.
-
 
 # Math
 
@@ -77,7 +76,7 @@ things.
 
 # Function Helpers
 
-@docs identity, always, (<|), (|>), (<<), (>>), Never, never
+@docs identity, always, (<|), (|>), (<<), (>>), Never, never, Unit
 
 -}
 
@@ -1127,6 +1126,7 @@ do not want `Never` in your return types though.
 type Never
     = JustOneMore Never
 
+type Unit = Unit
 
 {-| A function that can never be called. Seems extremely pointless, but it
 _can_ come in handy. Imagine you have some HTML that should never produce any

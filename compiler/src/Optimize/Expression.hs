@@ -261,16 +261,16 @@ destructHelp path (A.At region pattern) revDs =
     Can.PTuple a b (Just c) ->
       case path of
         Opt.Root _ ->
-          destructHelp (Opt.Index Index.third path) c =<<
-            destructHelp (Opt.Index Index.second path) b =<<
-              destructHelp (Opt.Index Index.first path) a revDs
+          destructHelp (Opt.GetTripleEl2 path) c =<<
+            destructHelp (Opt.GetTripleEl1 path) b =<<
+              destructHelp (Opt.GetTripleEl0 path) a revDs
 
         _ ->
           do  name <- Names.generate
               let newRoot = Opt.Root name
-              destructHelp (Opt.Index Index.third newRoot) c =<<
-                destructHelp (Opt.Index Index.second newRoot) b =<<
-                  destructHelp (Opt.Index Index.first newRoot) a (Opt.Destructor name path : revDs)
+              destructHelp (Opt.GetTripleEl2 newRoot) c =<<
+                destructHelp (Opt.GetTripleEl1 newRoot) b =<<
+                  destructHelp (Opt.GetTripleEl0 newRoot) a (Opt.Destructor name path : revDs)
 
     Can.PList [] ->
       pure revDs
@@ -296,7 +296,7 @@ destructHelp path (A.At region pattern) revDs =
     Can.PCtor _ _ (Can.Union _ _ _) _ _ args ->
       case args of
         [Can.PatternCtorArg _ _ arg] ->
-          destructHelp (Opt.Index Index.first path) arg revDs
+          destructHelp (Opt.CtorIndex Index.first path) arg revDs
 
         _ ->
           case path of
@@ -312,19 +312,19 @@ destructTwo :: Opt.Path -> Can.Pattern -> Can.Pattern -> [Opt.Destructor] -> Nam
 destructTwo path a b revDs =
   case path of
     Opt.Root _ ->
-      destructHelp (Opt.Index Index.second path) b =<<
-        destructHelp (Opt.Index Index.first path) a revDs
+      destructHelp (Opt.GetTupleEl1 path) b =<<
+        destructHelp (Opt.GetTupleEl0 path) a revDs
 
     _ ->
       do  name <- Names.generate
           let newRoot = Opt.Root name
-          destructHelp (Opt.Index Index.second newRoot) b =<<
-            destructHelp (Opt.Index Index.first newRoot) a (Opt.Destructor name path : revDs)
+          destructHelp (Opt.GetTupleEl1 newRoot) b =<<
+            destructHelp (Opt.GetTupleEl0 newRoot) a (Opt.Destructor name path : revDs)
 
 
 destructCtorArg :: Opt.Path -> [Opt.Destructor] -> Can.PatternCtorArg -> Names.Tracker [Opt.Destructor]
 destructCtorArg path revDs (Can.PatternCtorArg index _ arg) =
-  destructHelp (Opt.Index index path) arg revDs
+  destructHelp (Opt.CtorIndex index path) arg revDs
 
 
 
