@@ -8,3 +8,5 @@ cabal.sandbox.config
 *~
 travis.log
 example/out.bend
+.stack-work/
+dist-newstyle/
