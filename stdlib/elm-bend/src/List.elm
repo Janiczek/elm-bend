@@ -569,7 +569,7 @@ sort xs =
 
 -}
 sortBy : (a -> comparable) -> List a -> List a
-sortBy =
+sortBy _ _ =
     Debug.todo ()
 
 
@@ -588,7 +588,7 @@ to define any other: `sort == sortWith compare`
 
 -}
 sortWith : (a -> a -> Order) -> List a -> List a
-sortWith =
+sortWith _ _ =
     Debug.todo ()
 
 

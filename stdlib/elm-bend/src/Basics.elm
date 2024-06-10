@@ -299,7 +299,7 @@ values like this:
 
 -}
 toFloat : Int -> Float
-toFloat =
+toFloat _ =
     ourDebugTodo ()
 
 
@@ -321,7 +321,7 @@ toFloat =
 
 -}
 round : Float -> Int
-round =
+round _ =
     ourDebugTodo ()
 
 
@@ -343,7 +343,7 @@ round =
 
 -}
 floor : Float -> Int
-floor =
+floor _ =
     ourDebugTodo ()
 
 
@@ -365,7 +365,7 @@ floor =
 
 -}
 ceiling : Float -> Int
-ceiling =
+ceiling _ =
     ourDebugTodo ()
 
 
@@ -387,7 +387,7 @@ ceiling =
 
 -}
 truncate : Float -> Int
-truncate =
+truncate _ =
     ourDebugTodo ()
 
 
@@ -420,7 +420,7 @@ possible.
 
 -}
 eq : a -> a -> Bool
-eq =
+eq _ _ =
     ourDebugTodo ()
 
 
@@ -430,7 +430,7 @@ So `(a /= b)` is the same as `(not (a == b))`.
 
 -}
 neq : a -> a -> Bool
-neq =
+neq _ _ =
     ourDebugTodo ()
 
 
@@ -440,25 +440,25 @@ neq =
 
 {-| -}
 lt : comparable -> comparable -> Bool
-lt =
+lt _ _ =
     ourDebugTodo ()
 
 
 {-| -}
 gt : comparable -> comparable -> Bool
-gt =
+gt _ _ =
     ourDebugTodo ()
 
 
 {-| -}
 le : comparable -> comparable -> Bool
-le =
+le _ _ =
     ourDebugTodo ()
 
 
 {-| -}
 ge : comparable -> comparable -> Bool
-ge =
+ge _ _ =
     ourDebugTodo ()
 
 
@@ -506,7 +506,7 @@ are also the only values that work as `Dict` keys or `Set` members.
 
 -}
 compare : comparable -> comparable -> Order
-compare =
+compare _ _ =
     ourDebugTodo ()
 
 
@@ -573,7 +573,7 @@ and just return `False` overall.
 
 -}
 and : Bool -> Bool -> Bool
-and =
+and _ _ =
     ourDebugTodo ()
 
 
@@ -593,7 +593,7 @@ and just return `True` overall.
 
 -}
 or : Bool -> Bool -> Bool
-or =
+or _ _ =
     ourDebugTodo ()
 
 
@@ -609,7 +609,7 @@ or =
 
 -}
 xor : Bool -> Bool -> Bool
-xor =
+xor _ _ =
     ourDebugTodo ()
 
 
@@ -625,7 +625,7 @@ xor =
 
 -}
 append : appendable -> appendable -> appendable
-append =
+append _ _ =
     ourDebugTodo ()
 
 
@@ -658,7 +658,7 @@ information.
 
 -}
 modBy : Int -> Int -> Int
-modBy =
+modBy _ _ =
     ourDebugTodo ()
 
 
@@ -675,7 +675,7 @@ information.
 
 -}
 remainderBy : Int -> Int -> Int
-remainderBy =
+remainderBy _ _ =
     ourDebugTodo ()
 
 
@@ -747,7 +747,7 @@ clamp low high number =
 
 -}
 sqrt : Float -> Float
-sqrt =
+sqrt _ =
     ourDebugTodo ()
 
 
@@ -761,8 +761,8 @@ sqrt =
 logBase : Float -> Float -> Float
 logBase base number =
     fdiv
-        (ourDebugTodo () number)
-        (ourDebugTodo () base)
+        (ourDebugTodo ())
+        (ourDebugTodo ())
 
 
 {-| An approximation of e.
@@ -829,7 +829,7 @@ pi =
 
 -}
 cos : Float -> Float
-cos =
+cos _ =
     ourDebugTodo ()
 
 
@@ -845,7 +845,7 @@ cos =
 
 -}
 sin : Float -> Float
-sin =
+sin _ =
     ourDebugTodo ()
 
 
@@ -861,7 +861,7 @@ sin =
 
 -}
 tan : Float -> Float
-tan =
+tan _ =
     ourDebugTodo ()
 
 
@@ -871,7 +871,7 @@ tan =
 
 -}
 acos : Float -> Float
-acos =
+acos _ =
     ourDebugTodo ()
 
 
@@ -881,7 +881,7 @@ acos =
 
 -}
 asin : Float -> Float
-asin =
+asin _ =
     ourDebugTodo ()
 
 
@@ -908,7 +908,7 @@ for figuring out angles in any sort of visualization, so again, check out
 
 -}
 atan : Float -> Float
-atan =
+atan _ =
     ourDebugTodo ()
 
 
@@ -926,7 +926,7 @@ range of angles:
 
 -}
 atan2 : Float -> Float -> Float
-atan2 =
+atan2 _ _ =
     ourDebugTodo ()
 
 
@@ -978,7 +978,7 @@ numbers](https://en.wikipedia.org/wiki/NaN).
 
 -}
 isNaN : Float -> Bool
-isNaN =
+isNaN _ =
     ourDebugTodo ()
 
 
@@ -997,7 +997,7 @@ Notice that NaN is not infinite! For float `n` to be finite implies that
 
 -}
 isInfinite : Float -> Bool
-isInfinite =
+isInfinite _ =
     ourDebugTodo ()
 
 
@@ -1157,9 +1157,15 @@ ourDebugTodo () =
     -- Ideally once the Elm->Bend compiler work is done,
     -- there will be no usages of Debug.todo left in
     -- Basics.
+    -- Also, HVM is planning to add a panic function.
+    -- !!! Note that for now, the functions using this must be pointful:
+    --   append x y = ourDebugTodo ()
+    -- instead of:
+    --   append = ourDebugTodo ()
+    -- See: https://github.com/HigherOrderCO/HVM/issues/387
     let
-        nonaffine a =
-            ( a, a )
+        nonaffine x =
+            ( x, x )
 
         boom =
             ( nonaffine, nonaffine )

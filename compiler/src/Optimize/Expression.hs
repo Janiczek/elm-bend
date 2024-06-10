@@ -355,17 +355,17 @@ optimizeTail cycle rootName argNames locExpr@(A.At _ expression) =
     Can.Call func args ->
       do  oargs <- traverse (optimize cycle) args
 
-          let isMatchingName =
+          let (isMatchingName, currentModule) =
                 case A.toValue func of
-                  Can.VarLocal      name -> rootName == name
-                  Can.VarTopLevel _ name -> rootName == name
-                  _                      -> False
+                  Can.VarLocal      name -> (rootName == name, Nothing)
+                  Can.VarTopLevel m name -> (rootName == name, Just m)
+                  _                      -> (False, Nothing)
 
           if isMatchingName
             then
               case Index.indexedZipWith (\_ a b -> (a,b)) argNames oargs of
                 Index.LengthMatch pairs ->
-                  pure $ Opt.TailCall rootName pairs
+                  pure $ Opt.TailCall currentModule rootName pairs
 
                 Index.LengthMismatch _ _ ->
                   do  ofunc <- optimize cycle func
@@ -442,7 +442,7 @@ toTailDef name argNames destructors body =
 hasTailCall :: Opt.Expr -> Bool
 hasTailCall expression =
   case expression of
-    Opt.TailCall _ _ ->
+    Opt.TailCall _ _ _ ->
       True
 
     Opt.If branches finally ->

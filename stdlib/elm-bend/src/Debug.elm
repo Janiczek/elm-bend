@@ -13,8 +13,8 @@ todo () =
        cloning non-affine lambdas. We'll need to figure out another way then.
     -}
     let
-        nonaffine a =
-            ( a, a )
+        nonaffine x =
+            ( x, x )
 
         boom =
             ( nonaffine, nonaffine )

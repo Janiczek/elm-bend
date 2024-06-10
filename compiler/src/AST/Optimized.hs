@@ -51,7 +51,7 @@ data Expr
   | List [Expr]
   | Function [Name] Expr
   | Call Expr [Expr]
-  | TailCall Name [(Name, Expr)]
+  | TailCall (Maybe ModuleName.Canonical) Name [(Name, Expr)]
   | If [(Expr, Expr)] Expr
   | Let Def Expr
   | Destruct Destructor Expr
@@ -238,7 +238,7 @@ instance Binary Expr where
       List a           -> putWord8 12 >> put a
       Function a b     -> putWord8 13 >> put a >> put b
       Call a b         -> putWord8 14 >> put a >> put b
-      TailCall a b     -> putWord8 15 >> put a >> put b
+      TailCall a b c   -> putWord8 15 >> put a >> put b >> put c
       If a b           -> putWord8 16 >> put a >> put b
       Let a b          -> putWord8 17 >> put a >> put b
       Destruct a b     -> putWord8 18 >> put a >> put b
@@ -265,7 +265,7 @@ instance Binary Expr where
           12 -> liftM  List get
           13 -> liftM2 Function get get
           14 -> liftM2 Call get get
-          15 -> liftM2 TailCall get get
+          15 -> liftM3 TailCall get get get
           16 -> liftM2 If get get
           17 -> liftM2 Let get get
           18 -> liftM2 Destruct get get

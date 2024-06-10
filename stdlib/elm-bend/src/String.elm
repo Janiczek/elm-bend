@@ -445,7 +445,7 @@ dropRight n string =
 
 -}
 contains : String -> String -> Bool
-contains =
+contains _ _ =
     Debug.todo ()
 
 
@@ -457,7 +457,7 @@ contains =
 
 -}
 startsWith : String -> String -> Bool
-startsWith =
+startsWith _ _ =
     Debug.todo ()
 
 
@@ -469,7 +469,7 @@ startsWith =
 
 -}
 endsWith : String -> String -> Bool
-endsWith =
+endsWith _ _ =
     Debug.todo ()
 
 
@@ -483,7 +483,7 @@ endsWith =
 
 -}
 indexes : String -> String -> List Int
-indexes =
+indexes _ _ =
     Debug.todo ()
 
 
@@ -505,7 +505,7 @@ and VIRTUAL YELLING.
 
 -}
 toUpper : String -> String
-toUpper =
+toUpper _ =
     Debug.todo ()
 
 
@@ -515,7 +515,7 @@ toUpper =
 
 -}
 toLower : String -> String
-toLower =
+toLower _ =
     Debug.todo ()
 
 
@@ -571,7 +571,7 @@ padRight n char string =
 
 -}
 trim : String -> String
-trim =
+trim _ =
     Debug.todo ()
 
 
@@ -581,7 +581,7 @@ trim =
 
 -}
 trimLeft : String -> String
-trimLeft =
+trimLeft _ =
     Debug.todo ()
 
 
@@ -591,7 +591,7 @@ trimLeft =
 
 -}
 trimRight : String -> String
-trimRight =
+trimRight _ =
     Debug.todo ()
 
 
@@ -618,7 +618,7 @@ want to use [`Maybe.withDefault`](Maybe#withDefault) to handle bad data:
 
 -}
 toInt : String -> Maybe Int
-toInt =
+toInt _ =
     Debug.todo ()
 
 
@@ -633,7 +633,7 @@ for debugging purposes.
 
 -}
 fromInt : Int -> String
-fromInt =
+fromInt _ =
     Debug.todo ()
 
 
@@ -660,7 +660,7 @@ want to use [`Maybe.withDefault`](Maybe#withDefault) to handle bad data:
 
 -}
 toFloat : String -> Maybe Float
-toFloat =
+toFloat _ =
     Debug.todo ()
 
 
@@ -677,7 +677,7 @@ for debugging purposes.
 
 -}
 fromFloat : Float -> String
-fromFloat =
+fromFloat _ =
     Debug.todo ()
 
 
@@ -707,7 +707,7 @@ something.
 
 -}
 fromList : List Char -> String
-fromList =
+fromList _ =
     Debug.todo ()
 
 
@@ -744,7 +744,7 @@ pattern match on strings exactly as you would with lists.
 
 -}
 uncons : String -> Maybe ( Char, String )
-uncons =
+uncons _ =
     Debug.todo ()
 
 
@@ -782,7 +782,7 @@ map fn s =
 
 -}
 filter : (Char -> Bool) -> String -> String
-filter =
+filter _ _ =
     Debug.todo ()
 
 
@@ -792,7 +792,7 @@ filter =
 
 -}
 foldl : (Char -> b -> b) -> b -> String -> b
-foldl =
+foldl _ _ =
     Debug.todo ()
 
 
@@ -802,7 +802,7 @@ foldl =
 
 -}
 foldr : (Char -> b -> b) -> b -> String -> b
-foldr =
+foldr _ _ =
     Debug.todo ()
 
 
@@ -816,7 +816,7 @@ foldr =
 
 -}
 any : (Char -> Bool) -> String -> Bool
-any =
+any _ _ =
     Debug.todo ()
 
 
@@ -830,5 +830,5 @@ any =
 
 -}
 all : (Char -> Bool) -> String -> Bool
-all =
+all _ _ =
     Debug.todo ()

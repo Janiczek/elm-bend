@@ -284,7 +284,7 @@ fromTypeVariableScheme scheme =
 --
 -- Creating a unique name by combining all the subnames can create names
 -- longer than 256 bytes relatively easily. So instead, the first given name
--- (e.g. foo) is prefixed chars that are valid in JS but not Elm (e.g. _M$foo)
+-- (e.g. foo) is prefixed chars that are valid in Bend but not Elm (e.g. _M/foo)
 --
 -- This should be a unique name since 0.19 disallows shadowing. It would not
 -- be possible for multiple top-level cycles to include values with the same
@@ -313,7 +313,7 @@ fromManyNames names =
                 s ->
                   case writeWord8Array# mba# 1# (wordToWord8# 0x4D##) {-M-} s of
                     s ->
-                      case writeWord8Array# mba# 2# (wordToWord8# 0x24##) {-$-} s of
+                      case writeWord8Array# mba# 2# (wordToWord8# 0x2F##) {-/-} s of
                         s ->
                           case copyByteArray# ba# 0# mba# 3# len# s of
                             s ->
@@ -325,7 +325,7 @@ fromManyNames names =
 {-# NOINLINE blank #-}
 blank :: Name
 blank =
-  fromWords [0x5F,0x4D,0x24] {-_M$-}
+  fromWords [0x5F,0x4D,0x2F] {-_M/-}
 
 
 

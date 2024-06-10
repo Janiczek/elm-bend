@@ -258,28 +258,28 @@ isHexDigit char =
 {-| Convert to upper case.
 -}
 toUpper : Char -> Char
-toUpper =
+toUpper _ =
     Debug.todo ()
 
 
 {-| Convert to lower case.
 -}
 toLower : Char -> Char
-toLower =
+toLower _ =
     Debug.todo ()
 
 
 {-| Convert to upper case, according to any locale-specific case mappings.
 -}
 toLocaleUpper : Char -> Char
-toLocaleUpper =
+toLocaleUpper _ =
     Debug.todo ()
 
 
 {-| Convert to lower case, according to any locale-specific case mappings.
 -}
 toLocaleLower : Char -> Char
-toLocaleLower =
+toLocaleLower _ =
     Debug.todo ()
 
 
@@ -299,7 +299,7 @@ toLocaleLower =
 
 -}
 toCode : Char -> Int
-toCode =
+toCode _ =
     Debug.todo ()
 
 
@@ -325,5 +325,5 @@ range, you get [the replacement character][fffd].
 
 -}
 fromCode : Int -> Char
-fromCode =
+fromCode _ =
     Debug.todo ()

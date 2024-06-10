@@ -24,28 +24,28 @@ import Debug
 {-| Bitwise AND
 -}
 and : Int -> Int -> Int
-and =
+and _ _ =
     Debug.todo ()
 
 
 {-| Bitwise OR
 -}
 or : Int -> Int -> Int
-or =
+or _ _ =
     Debug.todo ()
 
 
 {-| Bitwise XOR
 -}
 xor : Int -> Int -> Int
-xor =
+xor _ _ =
     Debug.todo ()
 
 
 {-| Flip each bit individually, often called bitwise NOT
 -}
 complement : Int -> Int
-complement =
+complement _ =
     Debug.todo ()
 
 
@@ -58,7 +58,7 @@ This can be used to multiply numbers by powers of two.
 
 -}
 shiftLeftBy : Int -> Int -> Int
-shiftLeftBy =
+shiftLeftBy _ _ =
     Debug.todo ()
 
 
@@ -79,7 +79,7 @@ with copies of the highest bit.
 
 -}
 shiftRightBy : Int -> Int -> Int
-shiftRightBy =
+shiftRightBy _ _ =
     Debug.todo ()
 
 
@@ -99,5 +99,5 @@ zeros.
 
 -}
 shiftRightZfBy : Int -> Int -> Int
-shiftRightZfBy =
+shiftRightZfBy _ _ =
     Debug.todo ()

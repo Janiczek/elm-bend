@@ -2,3 +2,4 @@ build: stack build
 stdlib: rm -rf ~/.elm/0.19.1/packages/registry.dat && mkdir -p ~/.elm/0.19.1/packages/Janiczek/elm-bend/1.0.0 && rm -rf ~/.elm/0.19.1/packages/Janiczek/elm-bend/1.0.0/artifacts.dat && cp -rf stdlib/elm-bend/* ~/.elm/0.19.1/packages/Janiczek/elm-bend/1.0.0/
 test: cd example && rm -rf elm-stuff elm-bend-stuff && stack run make src/Main.elm && bat -l hs out.bend && bend run out.bend; cd ..
 core: cd stdlib/elm-bend && rm -rf elm-stuff elm-bend-stuff && stack run make; cd ../..
+all: ok s && ok c && ok t

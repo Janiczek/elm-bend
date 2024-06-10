@@ -87,7 +87,6 @@ prependBuilders revBuilders monolith =
 
 initBuilders :: [B.Builder]
 initBuilders =
-  -- TODO munging rules ... //, / etc. instead of $
   reverse
     [ "# Hello from Elm->Bend!"
     ]
@@ -103,7 +102,7 @@ addGlobal maybeMain graph state@(State revBuilders seen) global =
         State revBuilders (Set.insert global seen)
 
 addGlobalHelp :: Maybe ModuleName.Canonical -> Graph -> Opt.Global -> State -> State
-addGlobalHelp maybeMain graph global state =
+addGlobalHelp maybeMain graph global@(Opt.Global home name) state =
   let addDeps deps someState =
         Set.foldl' (addGlobal maybeMain graph) someState deps
       node = graph ! Debug.Trace.traceShowId global
@@ -118,12 +117,28 @@ addGlobalHelp maybeMain graph global state =
           state
         Opt.Link linkedGlobal ->
           addGlobal maybeMain graph state linkedGlobal
-        Opt.Cycle names values functions deps ->
-          -- addStmt
-          --   (addDeps deps state)
-          --   ( generateCycle global names values functions
-          --   )
-          error "TODO Opt.Cycle"
+        Opt.Cycle _ values functions deps ->
+          --      |     |      |         |
+          --      |     |      |        (Set.Set Global)
+          --      |     |      |
+          --      |     |     [Def] [TailDef ourDebugTodo [_v0] (Let (Def nonaffine (Function [a] (Tuple (VarLocal a) (VarLocal a) Nothing))) (Let (Def boom (Tuple (VarLocal nonaffine) (VarLocal nonaffine) Nothing)) (TailCall ourDebugTodo [(_v0,Unit)])))]
+          --      |     |
+          --      |    [(Name, Expr)] []
+          --      |
+          --      [Name] [ourDebugTodo]
+          --
+          -- global: _M/ourDebugTodo
+          let addFunction state_ (Opt.Def name_ expr_) =
+                addValueDecl maybeMain (Opt.Global home name_) expr_ state_
+              addFunction state_ (Opt.TailDef name_ args expr_) =
+                addFunctionDecl maybeMain (Opt.Global home name_) args expr_ state_
+              addValue state_ (name_, expr_) =
+                addValueDecl maybeMain (Opt.Global home name_) expr_ state_
+              -- 
+              stateWithDeps = addDeps deps state
+              stateWithValues = List.foldl' addValue stateWithDeps values
+              stateWithFunctions = List.foldl' addFunction stateWithValues functions
+           in stateWithFunctions
 
 addBuilder :: B.Builder -> State -> State
 addBuilder builder (State revBuilders seenGlobals) =
@@ -178,7 +193,7 @@ delim =
 exprToBuilder :: Maybe ModuleName.Canonical -> Opt.Expr -> B.Builder
 exprToBuilder maybeMain expr =
   let f = exprToBuilder maybeMain
-   in case Debug.Trace.traceShowId expr of
+   in case expr of
         Opt.Chr str -> error "TODO exprToBuilder Chr"
         Opt.Str str ->
           "\"" <> Utf8.toBuilder str <> "\""
@@ -226,7 +241,13 @@ exprToBuilder maybeMain expr =
           in "(" <> joinWith " " argToBuilder args <> " " <> f body <> ")"
         Opt.Call fn args ->
           "(" <> f fn <> " " <> joinWith " " f args <> ")"
-        Opt.TailCall a as -> error "TODO exprToBuilder TailCall"
+        Opt.TailCall maybeCurrentModule fn args ->
+          f $ Opt.Call
+                (case maybeCurrentModule of
+                   Nothing -> Opt.VarLocal fn
+                   Just currentModule -> (Opt.VarGlobal (Opt.Global currentModule fn))
+                )
+                (map snd args)
         Opt.If a1 a2 -> error "TODO exprToBuilder If"
         Opt.Let def expr_ ->
           let defToBuilder (Opt.Def name expr__) =
