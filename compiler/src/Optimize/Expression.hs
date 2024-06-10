@@ -259,6 +259,7 @@ destructHelp path (A.At region pattern) revDs =
       destructTwo path a b revDs
 
     Can.PTuple a b (Just c) ->
+      -- TODO Elm->Bend: somehow do all three at the same time?
       case path of
         Opt.Root _ ->
           destructHelp (Opt.GetTripleEl2 path) c =<<
@@ -454,14 +455,14 @@ hasTailCall expression =
       hasTailCall body
 
     Opt.Case _ _ decider jumps ->
-      decidecHasTailCall decider || any (hasTailCall . snd) jumps
+      deciderHasTailCall decider || any (hasTailCall . snd) jumps
 
     _ ->
       False
 
 
-decidecHasTailCall :: Opt.Decider Opt.Choice -> Bool
-decidecHasTailCall decider =
+deciderHasTailCall :: Opt.Decider Opt.Choice -> Bool
+deciderHasTailCall decider =
   case decider of
     Opt.Leaf choice ->
       case choice of
@@ -472,7 +473,7 @@ decidecHasTailCall decider =
           False
 
     Opt.Chain _ success failure ->
-      decidecHasTailCall success || decidecHasTailCall failure
+      deciderHasTailCall success || deciderHasTailCall failure
 
     Opt.FanOut _ tests fallback ->
-      decidecHasTailCall fallback || any (decidecHasTailCall . snd) tests
+      deciderHasTailCall fallback || any (deciderHasTailCall . snd) tests
