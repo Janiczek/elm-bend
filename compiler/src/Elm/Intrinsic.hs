@@ -1,9 +1,11 @@
-module Elm.Intrinsic (Intrinsic(..), name, parse) where
+{-# LANGUAGE OverloadedStrings #-}
+module Elm.Intrinsic (Intrinsic(..), name, parse, toBuilder) where
 
 import Data.Binary (Binary, get, put, getWord8, putWord8)
 
 import qualified Data.Map as Map
 import qualified Data.Name as Name
+import qualified Data.ByteString.Builder as B
 
 data Intrinsic
   = Add
@@ -38,12 +40,12 @@ name :: Intrinsic -> Name.Name
 name intrinsic =
   Name.fromChars $ 
     case intrinsic of
-      Add -> "add"
-      Sub -> "sub"
-      Mul -> "mul"
+      Add  -> "add"
+      Sub  -> "sub"
+      Mul  -> "mul"
       Fdiv -> "fdiv"
       Idiv -> "idiv"
-      Pow -> "pow"
+      Pow  -> "pow"
 
 mapping :: Map.Map Name.Name Intrinsic
 mapping =
@@ -54,3 +56,14 @@ mapping =
 parse :: Name.Name -> Maybe Intrinsic
 parse name =
   Map.lookup name mapping
+
+
+toBuilder :: Intrinsic -> B.Builder
+toBuilder intrinsic =
+  case intrinsic of
+    Add  -> "(@a @b (+ a b))"
+    Sub  -> "(@a @b (- a b))"
+    Mul  -> "(@a @b (* a b))"
+    Fdiv -> "(@a @b (/ a b))"
+    Idiv -> "(@a @b (/ a b))"
+    Pow  -> error "TODO Intrinsic.toBuilder - Pow"

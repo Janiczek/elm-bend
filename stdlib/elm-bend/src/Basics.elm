@@ -203,7 +203,7 @@ See [`(+)`](#+) for docs on the `number` type variable.
 
 -}
 sub : number -> number -> number
-sub a b =
+sub =
     __intrinsic_sub
 
 
@@ -213,7 +213,7 @@ See [`(+)`](#+) for docs on the `number` type variable.
 
 -}
 mul : number -> number -> number
-mul a b =
+mul =
     __intrinsic_mul
 
 
@@ -239,7 +239,7 @@ mul a b =
 
 -}
 fdiv : Float -> Float -> Float
-fdiv a b =
+fdiv =
     __intrinsic_fdiv
 
 
@@ -271,7 +271,7 @@ function.
 
 -}
 idiv : Int -> Int -> Int
-idiv a b =
+idiv =
     __intrinsic_idiv
 
 
@@ -283,7 +283,7 @@ idiv a b =
 
 -}
 pow : number -> number -> number
-pow a b =
+pow =
     __intrinsic_pow
 
 

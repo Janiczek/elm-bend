@@ -89,8 +89,7 @@ initBuilders :: [B.Builder]
 initBuilders =
   -- TODO munging rules ... //, / etc. instead of $
   reverse
-  [ "### Elm->Bend prelude",
-    -- tuples
+  [ -- tuples
     "_Elm.GetTuple.el0 (a,*) = a",
     "_Elm.GetTuple.el1 (*,b) = b",
     -- triples
@@ -99,7 +98,6 @@ initBuilders =
     "_Elm.GetTriple.el2 (*,(*,c)) = c",
     -- unit
     "type Basics/Unit = Unit",
-    "###",
     ""
 
   ]
@@ -116,11 +114,9 @@ addGlobal maybeMain graph state@(State revBuilders seen) global =
 
 addGlobalHelp :: Maybe ModuleName.Canonical -> Graph -> Opt.Global -> State -> State
 addGlobalHelp maybeMain graph global state =
-  let -- !_ = Debug.Trace.trace ("XXX2: from graph: " ++ show graph) ()
-      addDeps deps someState =
+  let addDeps deps someState =
         Set.foldl' (addGlobal maybeMain graph) someState deps
       node = graph ! Debug.Trace.traceShowId global
-      -- !_ = Debug.Trace.trace ("XXX1: node: " ++ show node) ()
    in case node of
         Opt.Define expr deps ->
           let stateWithDeps = addDeps deps state
@@ -201,14 +197,13 @@ exprToBuilder maybeMain expr =
           B.stringUtf8 $ show i
         Opt.Float f ->
           Float.toBuilder f
-        Opt.VarLocal name -> error "TODO exprToBuilder VarLocal"
+        Opt.VarLocal name ->
+          "(" <> Name.toBuilder name <> ")"
         Opt.VarGlobal name ->
           -- (Basics/foo) (if in non-Main module)
           -- (foo)        (if in Main module)
           "(" <> qualifiedNameToBuilder maybeMain name <> ")"
         Opt.VarCtor adtName global@(Opt.Global home@(ModuleName.Canonical _ module_) ctorName) -> 
-          -- Basics/Bool/True (if in non-Main module)
-          -- MyType/MyCtor    (if in Main module)
           case maybeMain of
             Nothing -> qualified
             Just main ->
@@ -217,6 +212,7 @@ exprToBuilder maybeMain expr =
               else qualified
           where
             qualified =
+            -- (Basics/Bool/True) (if in non-Main module)
               "("
               <> Name.toBuilder module_ 
               <> delim
@@ -225,6 +221,7 @@ exprToBuilder maybeMain expr =
               <> Name.toBuilder ctorName
               <> ")"
             unqualified =
+            -- (MyType/MyCtor)    (if in Main module)
               "("
               <> Name.toBuilder adtName
               <> delim
@@ -232,10 +229,12 @@ exprToBuilder maybeMain expr =
               <> ")"
         Opt.VarCycle moduleName name -> error "TODO exprToBuilder VarCycle"
         Opt.Intrinsic intrinsic ->
-          intrinsicToBuilder intrinsic
+          Elm.Intrinsic.toBuilder intrinsic
         Opt.List list ->
           "[" <> joinWith "," f list <> "]"
-        Opt.Function args body -> error "TODO exprToBuilder Function"
+        Opt.Function args body -> 
+          let argToBuilder arg = "@" <> Name.toBuilder arg
+          in "(" <> joinWith " " argToBuilder args <> " " <> f body <> ")"
         Opt.Call fn args ->
           "(" <> f fn <> " " <> joinWith " " f args <> ")"
         Opt.TailCall a as -> error "TODO exprToBuilder TailCall"
@@ -255,13 +254,3 @@ exprToBuilder maybeMain expr =
               "(" <> f t1 <> "," <> f t2 <> ")"
             Just t3 ->
               "(" <> f t1 <> ",(" <> f t2 <> "," <> f t3 <> "))"
-
-intrinsicToBuilder :: Elm.Intrinsic.Intrinsic -> B.Builder
-intrinsicToBuilder intrinsic =
-  case intrinsic of
-    Elm.Intrinsic.Add -> "(@a @b (+ a b))"
-    Elm.Intrinsic.Sub -> "(@a @b (- a b))"
-    Elm.Intrinsic.Mul -> "(@a @b (* a b))"
-    Elm.Intrinsic.Fdiv -> "(@a @b (/ a b))"
-    Elm.Intrinsic.Idiv -> "(@a @b (/ a b))"
-    Elm.Intrinsic.Pow -> error "TODO intrinsicToBuilder - Pow"
