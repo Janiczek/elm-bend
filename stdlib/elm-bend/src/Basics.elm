@@ -625,8 +625,8 @@ xor _ _ =
 
 -}
 append : appendable -> appendable -> appendable
-append _ _ =
-    ourDebugTodo ()
+append =
+    __intrinsic_append
 
 
 

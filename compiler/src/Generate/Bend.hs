@@ -232,8 +232,8 @@ exprToBuilder maybeMain expr =
               <> Name.toBuilder ctorName
               <> ")"
         Opt.VarCycle moduleName name -> error "TODO exprToBuilder VarCycle"
-        Opt.Intrinsic intrinsic ->
-          Elm.Intrinsic.toBuilder intrinsic
+        Opt.Intrinsic tipe intrinsic ->
+          Elm.Intrinsic.toBuilder tipe intrinsic
         Opt.List list ->
           "[" <> joinWith "," f list <> "]"
         Opt.Function args body -> 

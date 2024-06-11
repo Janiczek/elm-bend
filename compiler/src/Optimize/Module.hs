@@ -14,6 +14,7 @@ import qualified Data.Map as Map
 import qualified Data.Name as Name
 import qualified Data.Set as Set
 import Data.Map ((!))
+import qualified Debug.Trace
 
 import qualified AST.Canonical as Can
 import qualified AST.Optimized as Opt
@@ -138,7 +139,7 @@ addDecls home annotations decls graph =
       let defs = d:ds in
       case findMain defs of
         Nothing ->
-          addDecls home annotations subDecls (addRecDefs home defs graph)
+          addDecls home annotations subDecls (addRecDefs annotations home defs graph)
 
         Just region ->
           Result.throw $ E.BadCycle region (defToName d) (map defToName ds)
@@ -178,38 +179,40 @@ addDef home annotations def graph =
   case def of
     Can.Def (A.At region name) args body ->
       do  let (Can.Forall _ tipe) = annotations ! name
+          let !_ = Debug.Trace.trace ("Can.Def tipe: " ++ show tipe)
           Result.warn $ W.MissingTypeAnnotation region name tipe
-          addDefHelp home name args body graph
+          addDefHelp annotations home name args body graph
 
-    Can.TypedDef (A.At _ name) _ typedArgs body _ ->
-      addDefHelp home name (map fst typedArgs) body graph
+    Can.TypedDef (A.At _ name) _ typedArgs body bodyType ->
+      let !_ = Debug.Trace.trace ("Can.TypedDef bodyType: " ++ show bodyType) in
+      addDefHelp annotations home name (map fst typedArgs) body graph
 
 
-addDefHelp :: ModuleName.Canonical -> Name.Name -> [Can.Pattern] -> Can.Expr -> Opt.LocalGraph -> Result i w Opt.LocalGraph
-addDefHelp home name args body graph@(Opt.LocalGraph _ nodes fieldCounts adts) =
+addDefHelp :: Map.Map Name.Name Can.Annotation -> ModuleName.Canonical -> Name.Name -> [Can.Pattern] -> Can.Expr -> Opt.LocalGraph -> Result i w Opt.LocalGraph
+addDefHelp ann home name args body graph@(Opt.LocalGraph _ nodes fieldCounts adts) =
   if name /= Name._main then
-    Result.ok (addDefNode home name args body Set.empty graph)
+    Result.ok (addDefNode ann home name args body Set.empty graph)
   else
     let
       addMain (deps, fields, main) =
-        addDefNode home name args body deps $
+        addDefNode ann home name args body deps $
           Opt.LocalGraph (Just main) nodes (Map.unionWith (+) fields fieldCounts) adts
     in
     Result.ok $ addMain $ Names.run Names.noop
 
 
-addDefNode :: ModuleName.Canonical -> Name.Name -> [Can.Pattern] -> Can.Expr -> Set.Set Opt.Global -> Opt.LocalGraph -> Opt.LocalGraph
-addDefNode home name args body mainDeps graph =
+addDefNode :: Annotations -> ModuleName.Canonical -> Name.Name -> [Can.Pattern] -> Can.Expr -> Set.Set Opt.Global -> Opt.LocalGraph -> Opt.LocalGraph
+addDefNode ann home name args body mainDeps graph =
   let
     (deps, fields, def) =
       Names.run $
         case args of
           [] ->
-            Expr.optimize Set.empty body
+            Expr.optimize ann Set.empty body
 
           _ ->
             do  (argNames, destructors) <- Expr.destructArgs args
-                obody <- Expr.optimize Set.empty body
+                obody <- Expr.optimize ann Set.empty body
                 pure $ Opt.Function argNames $
                   foldr Opt.Destruct obody destructors
   in
@@ -228,8 +231,8 @@ data State =
   deriving (Show)
 
 
-addRecDefs :: ModuleName.Canonical -> [Can.Def] -> Opt.LocalGraph -> Opt.LocalGraph
-addRecDefs home defs (Opt.LocalGraph main nodes fieldCounts adts) =
+addRecDefs :: Map.Map Name.Name Can.Annotation -> ModuleName.Canonical -> [Can.Def] -> Opt.LocalGraph -> Opt.LocalGraph
+addRecDefs ann home defs (Opt.LocalGraph main nodes fieldCounts adts) =
   let
     names = reverse (map toName defs)
     cycleName = Opt.Global home (Name.fromManyNames names)
@@ -238,7 +241,7 @@ addRecDefs home defs (Opt.LocalGraph main nodes fieldCounts adts) =
 
     (deps, fields, State values funcs) =
       Names.run $
-        foldM (addRecDef cycle) (State [] []) defs
+        foldM (addRecDef ann cycle) (State [] []) defs
   in
   Opt.LocalGraph
     main
@@ -275,23 +278,23 @@ addLink home link def links =
 -- ADD RECURSIVE DEFS
 
 
-addRecDef :: Set.Set Name.Name -> State -> Can.Def -> Names.Tracker State
-addRecDef cycle state def =
+addRecDef :: Map.Map Name.Name Can.Annotation -> Set.Set Name.Name -> State -> Can.Def -> Names.Tracker State
+addRecDef ann cycle state def =
   case def of
     Can.Def (A.At _ name) args body ->
-      addRecDefHelp cycle state name args body
+      addRecDefHelp ann cycle state name args body
 
     Can.TypedDef (A.At _ name) _ args body _ ->
-      addRecDefHelp cycle state name (map fst args) body
+      addRecDefHelp ann cycle state name (map fst args) body
 
 
-addRecDefHelp :: Set.Set Name.Name -> State -> Name.Name -> [Can.Pattern] -> Can.Expr -> Names.Tracker State
-addRecDefHelp cycle (State values funcs) name args body =
+addRecDefHelp :: Map.Map Name.Name Can.Annotation -> Set.Set Name.Name -> State -> Name.Name -> [Can.Pattern] -> Can.Expr -> Names.Tracker State
+addRecDefHelp ann cycle (State values funcs) name args body =
   case args of
     [] ->
-      do  obody <- Expr.optimize cycle body
+      do  obody <- Expr.optimize ann cycle body
           pure $ State ((name, obody) : values) funcs
 
     _:_ ->
-      do  odef <- Expr.optimizePotentialTailCall cycle name args body
+      do  odef <- Expr.optimizePotentialTailCall ann cycle name args body
           pure $ State values (odef : funcs)

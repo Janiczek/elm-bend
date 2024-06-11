@@ -9,6 +9,7 @@ module Type.Constrain.Expression
 
 import qualified Data.Map.Strict as Map
 import qualified Data.Name as Name
+import qualified Debug.Trace
 
 import qualified AST.Canonical as Can
 import qualified Data.Index as Index
@@ -38,7 +39,7 @@ type RTV =
 
 constrain :: RTV -> Can.Expr -> Expected Type -> IO Constraint
 constrain rtv (A.At region expression) expected =
-  case expression of
+  case Debug.Trace.traceShowId expression of
     Can.VarLocal name ->
       return (CLocal region name expected)
 

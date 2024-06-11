@@ -20,6 +20,7 @@ import qualified Data.Map as Map
 import qualified Data.Name as Name
 import qualified Data.Set as Set
 
+import qualified AST.Canonical as Can
 import qualified AST.Optimized as Opt
 import qualified Elm.ModuleName as ModuleName
 import qualified Elm.Intrinsic
@@ -101,13 +102,13 @@ addOne name fields =
   Map.insertWith (+) name 1 fields
 
 
-registerIntrinsic :: Name.Name -> Tracker Opt.Expr
-registerIntrinsic name =
+registerIntrinsic :: Can.Type -> Name.Name -> Tracker Opt.Expr
+registerIntrinsic tipe name =
   Tracker $ \uid deps fields ok ->
     case Elm.Intrinsic.parse name of
       Nothing -> error "Elm->Bend: bad intrinsic"
       Just intrinsic ->
-        ok uid deps fields (Opt.Intrinsic intrinsic)
+        ok uid deps fields (Opt.Intrinsic tipe intrinsic)
 
 
 -- INSTANCES

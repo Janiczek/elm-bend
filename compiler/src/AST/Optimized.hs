@@ -47,7 +47,7 @@ data Expr
   | VarGlobal Global
   | VarCtor Name Global -- the first arg is adtName
   | VarCycle ModuleName.Canonical Name
-  | Intrinsic Intrinsic
+  | Intrinsic Can.Type Intrinsic
   | List [Expr]
   | Function [Name] Expr
   | Call Expr [Expr]
@@ -234,7 +234,7 @@ instance Binary Expr where
       VarGlobal a      -> putWord8  6 >> put a
       VarCtor a b      -> putWord8  7 >> put a >> put b
       VarCycle a b     -> putWord8  9 >> put a >> put b
-      Intrinsic a      -> putWord8 10 >> put a
+      Intrinsic a b    -> putWord8 10 >> put a >> put b
       List a           -> putWord8 12 >> put a
       Function a b     -> putWord8 13 >> put a >> put b
       Call a b         -> putWord8 14 >> put a >> put b
@@ -261,7 +261,7 @@ instance Binary Expr where
           6  -> liftM  VarGlobal get
           7  -> liftM2 VarCtor get get
           9  -> liftM2 VarCycle get get
-          10 -> liftM  Intrinsic get
+          10 -> liftM2 Intrinsic get get
           12 -> liftM  List get
           13 -> liftM2 Function get get
           14 -> liftM2 Call get get
